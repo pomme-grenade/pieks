@@ -31,9 +31,6 @@ export async function createCards() {
     const card = new THREE.Mesh(bgMesh, bgMat);
     card.position.y = -2;
     card.position.x = cardXPosition(i, cardCount);
-    card.userData = {
-      number: i,
-    };
 
     const textMesh = new THREE.PlaneGeometry(cardWidth, cardWidth);
     const textMat = new THREE.MeshBasicMaterial({
