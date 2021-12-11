@@ -42,24 +42,62 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.x = 1;
-camera.position.y = 1;
-camera.position.z = 1;
+camera.position.x = 0;
+camera.position.y = -1;
+camera.position.z = 4;
 scene.add(camera);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 
+const fieldCount = 23;
+const fieldWidth = 0.4;
+function cardXPosition(i) {
+  return (i - Math.floor(fieldCount / 2)) * fieldWidth * 1.1;
+}
+
 // playing field
-for (let i of range(23)) {
-  const geometry = new THREE.PlaneGeometry(0.4, 1);
+for (let i of range(fieldCount)) {
+  const geometry = new THREE.PlaneGeometry(fieldWidth, 1);
+  let color = 0xffff00;
+  if (i === 11) {
+    color = 0xffa000;
+  }
   const material = new THREE.MeshBasicMaterial({
-    color: 0xffff00,
+    color,
     side: THREE.FrontSide,
   });
   const plane = new THREE.Mesh(geometry, material);
-  plane.position.x = i * 0.5;
+  plane.position.x = cardXPosition(i);
+  scene.add(plane);
+}
+
+// players
+const playerHeight = 0.2;
+for (let i of [0, 22]) {
+  const geometry = new THREE.CylinderGeometry(0.15, 0.15, playerHeight);
+  const material = new THREE.MeshBasicMaterial({ color: 0xfafafa });
+  const cube = new THREE.Mesh(geometry, material);
+  cube.rotation.x = Math.PI / 2;
+  cube.position.x = cardXPosition(i);
+  cube.position.z = playerHeight / 2;
+  scene.add(cube);
+}
+
+// cards
+const cardWidth = 1;
+const cardHeight = 1.4;
+const cardCount = 5;
+for (let i of range(0, cardCount)) {
+  const geometry = new THREE.PlaneGeometry(cardWidth, cardHeight);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    side: THREE.FrontSide,
+  });
+  const plane = new THREE.Mesh(geometry, material);
+  plane.position.y = -2;
+  plane.position.x = i * cardWidth * 1.1;
   scene.add(plane);
 }
 
