@@ -1,10 +1,10 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { range } from "lodash";
 import { Vector3 } from "three";
 import { startSockets } from "./web_sockets.js";
 import { createCards, updateCards } from "./card";
+import { createFieldTiles, createPlayers, updatePlayers } from "./field";
 
 const moves = ["move_right", "move_left", "attack", "jump_attack", "parry"];
 
@@ -59,39 +59,9 @@ const controls = new OrbitControls(camera, canvas);
 controls.target = new Vector3(0, -0.5, 0);
 controls.enableDamping = true;
 
-const fieldCount = 23;
-const fieldWidth = 0.4;
-function cardXPosition(i) {
-  return (i - Math.floor(fieldCount / 2)) * fieldWidth * 1.1;
-}
-
-// playing field
-for (let i of range(fieldCount)) {
-  const geometry = new THREE.PlaneGeometry(fieldWidth, 1);
-  let color = 0xffff00;
-  if (i === 11) {
-    color = 0xffa000;
-  }
-  const material = new THREE.MeshBasicMaterial({
-    color,
-    side: THREE.FrontSide,
-  });
-  const plane = new THREE.Mesh(geometry, material);
-  plane.position.x = cardXPosition(i);
-  scene.add(plane);
-}
-
-// players
-const playerHeight = 0.2;
-for (let i of [0, 22]) {
-  const geometry = new THREE.CylinderGeometry(0.15, 0.15, playerHeight);
-  const material = new THREE.MeshBasicMaterial({ color: 0xfafafa });
-  const cube = new THREE.Mesh(geometry, material);
-  cube.rotation.x = Math.PI / 2;
-  cube.position.x = cardXPosition(i);
-  cube.position.z = playerHeight / 2;
-  scene.add(cube);
-}
+scene.add(...createFieldTiles());
+const playerMeshes = createPlayers();
+scene.add(...playerMeshes);
 
 const cardGroup = await createCards();
 scene.add(cardGroup);
@@ -154,6 +124,7 @@ tick();
 
 function updateState(newState) {
   updateCards(cardGroup.children, newState.own_hand);
+  updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
 }
 
 const sendMessage = startSockets(updateState);
