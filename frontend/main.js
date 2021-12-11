@@ -17,6 +17,9 @@ const canvas = document.querySelector("canvas.webgl");
 // Scene
 const scene = new THREE.Scene();
 
+const mousePosition = new THREE.Vector2();
+const raycaster = new THREE.Raycaster();
+
 /**
  * Sizes
  */
@@ -94,6 +97,7 @@ for (let i of [0, 22]) {
 const cardWidth = 1;
 const cardHeight = 1.4;
 const cardCount = 5;
+const cardGroup = new THREE.Group();
 for (let i of range(0, cardCount)) {
   const geometry = new THREE.PlaneGeometry(cardWidth, cardHeight);
   const material = new THREE.MeshBasicMaterial({
@@ -103,8 +107,19 @@ for (let i of range(0, cardCount)) {
   const plane = new THREE.Mesh(geometry, material);
   plane.position.y = -2;
   plane.position.x = (i - Math.floor(cardCount / 2)) * cardWidth * 1.1;
-  scene.add(plane);
+  cardGroup.add(plane);
 }
+scene.add(cardGroup);
+
+function onMouseMove(event) {
+  // calculate mouse position in normalized device coordinates
+  // (-1 to +1) for both components
+
+  mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mousePosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
+}
+
+window.addEventListener("mousemove", onMouseMove, false);
 
 /**
  * Renderer
@@ -126,6 +141,20 @@ const tick = () => {
   const elapsedTime = clock.getElapsedTime();
   const deltaTime = elapsedTime - lastElapsedTime;
   lastElapsedTime = elapsedTime;
+
+  // update the picking ray with the camera and mouse position
+  raycaster.setFromCamera(mousePosition, camera);
+
+  for (let card of cardGroup.children) {
+    card.material.color.set(0xffffff);
+  }
+
+  // calculate objects intersecting the picking ray
+  const intersects = raycaster.intersectObjects(cardGroup.children);
+
+  for (let intersect of intersects) {
+    intersect.object.material.color.set(0xff0000);
+  }
 
   // Update controls
   controls.update();
