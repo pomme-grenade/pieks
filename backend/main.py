@@ -26,8 +26,8 @@ class Game:
         self.current_player = p1
 
     async def start_game(self):
-        await self.p1.con.send_text("los")
-        await self.p2.con.send_text("los")
+        # await self.p1.con.send_text("los")
+        # await self.p2.con.send_text("los")
         await self.p1.con.send_json(self.get_state(self.p1))
         await self.p2.con.send_json(self.get_state(self.p2))
 
@@ -63,20 +63,24 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, id: UUID):
         await websocket.accept()
-        player = None
 
         if self.queue == None:
             player = Player(websocket, id, 22)
             self.queue = player
+            print("queued player")
         else:
             new_player = Player(websocket, id, 0, self.queue)
             self.queue.other_player = new_player
             game = Game(self.queue, new_player)
+            self.queue = None
             self.games.append(game)
             await game.start_game()
+            print("created game")
 
     def disconnect(self, websocket: WebSocket):
-        self.queue = None
+        # If player is queued, remove them from queue
+        if self.queue is not None and self.queue.con == websocket:
+            self.queue = None
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
@@ -94,6 +98,6 @@ async def websocket_endpoint(websocket: WebSocket, client_id: UUID):
     try:
         while True:
             data = await websocket.receive_text()
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
+            # await manager.send_personal_message(f"You wrote: {data}", websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
