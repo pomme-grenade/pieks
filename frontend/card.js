@@ -28,9 +28,12 @@ export async function createCards() {
       color: 0xffffff,
       side: THREE.FrontSide,
     });
-    const plane = new THREE.Mesh(bgMesh, bgMat);
-    plane.position.y = -2;
-    plane.position.x = cardXPosition(i, cardCount);
+    const card = new THREE.Mesh(bgMesh, bgMat);
+    card.position.y = -2;
+    card.position.x = cardXPosition(i, cardCount);
+    card.userData = {
+      number: i,
+    };
 
     const textMesh = new THREE.PlaneGeometry(cardWidth, cardWidth);
     const textMat = new THREE.MeshBasicMaterial({
@@ -39,9 +42,9 @@ export async function createCards() {
     });
     const textPlane = new THREE.Mesh(textMesh, textMat);
     textPlane.position.z += 0.1;
-    plane.add(textPlane);
+    card.add(textPlane);
 
-    cardGroup.add(plane);
+    cardGroup.add(card);
   }
   return cardGroup;
 }
@@ -56,9 +59,11 @@ export function updateCards(meshes, state) {
     if (i < state.length) {
       mesh.visible = true;
       mesh.position.x = cardXPosition(i, state.length);
+      mesh.userData.number = state[i];
       meshes[i].children[0].material.map = textures[state[i] - 1];
     } else {
       mesh.visible = false;
+      mesh.userData.number = null;
     }
   }
 }

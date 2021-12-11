@@ -97,7 +97,6 @@ for (let i of [0, 22]) {
 
 const cardGroup = await createCards();
 scene.add(cardGroup);
-updateCards(cardGroup.children, [1, 1, 5]);
 
 function onMouseMove(event) {
   // calculate mouse position in normalized device coordinates
@@ -106,8 +105,20 @@ function onMouseMove(event) {
   mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
   mousePosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
-
 window.addEventListener("mousemove", onMouseMove, false);
+
+function onMouseClick(event) {
+  const intersects = raycaster
+    .intersectObjects(cardGroup.children)
+    // Pick only objects that are cards (meaning they have a number)
+    .filter((o) => typeof o.object.userData.number !== "undefined");
+
+  for (let intersect of intersects) {
+    console.log(intersect.object.userData.number);
+  }
+}
+
+window.addEventListener("click", onMouseClick, false);
 
 /**
  * Renderer
