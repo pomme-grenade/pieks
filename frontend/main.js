@@ -48,11 +48,12 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.x = 0;
 camera.position.y = -1;
-camera.position.z = 4;
+camera.position.z = 5;
 scene.add(camera);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
+controls.target = new Vector3(0, -0.5, 0);
 controls.enableDamping = true;
 
 const fieldCount = 23;
@@ -101,7 +102,7 @@ for (let i of range(0, cardCount)) {
   });
   const plane = new THREE.Mesh(geometry, material);
   plane.position.y = -2;
-  plane.position.x = i * cardWidth * 1.1;
+  plane.position.x = (i - Math.floor(cardCount / 2)) * cardWidth * 1.1;
   scene.add(plane);
 }
 
