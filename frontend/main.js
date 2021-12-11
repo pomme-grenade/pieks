@@ -4,7 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { range } from "lodash";
 import { Vector3 } from "three";
 import { startSockets } from "./web_sockets.js";
-import { v4 as uuidv4 } from "uuid";
+import { createCards } from "./card";
 
 startSockets();
 
@@ -93,22 +93,7 @@ for (let i of [0, 22]) {
   scene.add(cube);
 }
 
-// cards
-const cardWidth = 1;
-const cardHeight = 1.4;
-const cardCount = 5;
-const cardGroup = new THREE.Group();
-for (let i of range(0, cardCount)) {
-  const geometry = new THREE.PlaneGeometry(cardWidth, cardHeight);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    side: THREE.FrontSide,
-  });
-  const plane = new THREE.Mesh(geometry, material);
-  plane.position.y = -2;
-  plane.position.x = (i - Math.floor(cardCount / 2)) * cardWidth * 1.1;
-  cardGroup.add(plane);
-}
+const cardGroup = await createCards();
 scene.add(cardGroup);
 
 function onMouseMove(event) {
