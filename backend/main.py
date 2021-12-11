@@ -53,6 +53,5 @@ async def websocket_endpoint(websocket: WebSocket, client_id: UUID):
         while True:
             data = await websocket.receive_json()
             await manager.games[client_id].update_state(data, client_id)
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)

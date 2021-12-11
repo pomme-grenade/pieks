@@ -55,15 +55,47 @@ class Game:
             "other_hand": own_player.other_player.hand,
         }
 
-    async def update_state(self, data, id):
+    def is_valid_move(self, player, move):
+        if self.current_player != player:
+            return False
+
+        if move["action"] == "moveRight":
+            new_pos = player.pos + move["cards"][0]
+            if new_pos > 22 or new_pos > player.other_player.pos:
+                return False
+
+        elif move["action"] == "moveLeft":
+            new_pos = player.pos - move["cards"][0]
+            if new_pos < 0 or new_pos < player.other_player.pos:
+                return False
+
+        elif move["action"] == "attack":
+            # check that all cards have equal values
+            first_card = move["cards"][0]
+            for other_card in move["cards"]:
+                if other_card != first_card:
+                    return False
+
+            # check that positions match the card value
+            attack_position = player.pos + first_card
+            if attack_position != player.other_player.pos:
+                return False
+
+        return True
+
+    async def update_state(self, move, id):
         player = self.get_player_by_id(id)
-        if data["action"] == "moveRight":
-            player.pos += data["cards"][0]
-        elif data["action"] == "moveLeft":
-            player.pos -= data["cards"][0]
+        if not self.is_valid_move(player, move):
+            print(f"invalid move, aborting: {move}")
+            return
+
+        if move["action"] == "moveRight":
+            player.pos += move["cards"][0]
+        elif move["action"] == "moveLeft":
+            player.pos -= move["cards"][0]
 
         self.current_player = player.other_player
-        self.last_action = data["action"]
+        self.last_action = move["action"]
 
         await self.p1.con.send_json(self.get_state(self.p1))
         await self.p2.con.send_json(self.get_state(self.p2))
