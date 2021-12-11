@@ -1,0 +1,16 @@
+{
+  "name": "pieks",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^2.7.0"
+  },
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "three": "^0.135.0"
+  }
+}
