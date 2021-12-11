@@ -29,7 +29,7 @@ class Game:
         await self.p1.con.send_text("los")
         await self.p2.con.send_text("los")
         await self.p1.con.send_json(self.get_state(self.p1))
-        await self.p1.con.send_json(self.get_state(self.p2))
+        await self.p2.con.send_json(self.get_state(self.p2))
 
     def init_deck(self):
         for i in range(5):
