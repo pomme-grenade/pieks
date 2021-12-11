@@ -8,8 +8,6 @@ import { createCards, updateCards } from "./card";
 
 const moves = ["move_right", "move_left", "attack", "jump_attack", "parry"];
 
-startSockets();
-
 /**
  * Base
  */
@@ -107,19 +105,6 @@ function onMouseMove(event) {
 }
 window.addEventListener("mousemove", onMouseMove, false);
 
-function onMouseClick(event) {
-  const intersects = raycaster
-    .intersectObjects(cardGroup.children)
-    // Pick only objects that are cards (meaning they have a number)
-    .filter((o) => typeof o.object.userData.number !== "undefined");
-
-  for (let intersect of intersects) {
-    console.log(intersect.object.userData.number);
-  }
-}
-
-window.addEventListener("click", onMouseClick, false);
-
 /**
  * Renderer
  */
@@ -166,3 +151,26 @@ const tick = () => {
 };
 
 tick();
+
+function updateState(newState) {
+  updateCards(cardGroup.children, newState.own_hand);
+}
+
+const sendMessage = startSockets(updateState);
+
+function onMouseClick(event) {
+  const intersects = raycaster
+    .intersectObjects(cardGroup.children)
+    // Pick only objects that are cards (meaning they have a number)
+    .filter((o) => typeof o.object.userData.number !== "undefined");
+
+  for (let intersect of intersects) {
+    let number = intersect.object.userData.number;
+    sendMessage({
+      action: "moveRight",
+      cards: [number],
+    });
+  }
+}
+
+window.addEventListener("click", onMouseClick, false);
