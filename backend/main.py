@@ -7,14 +7,16 @@ import random
 
 app = FastAPI()
 
+
 class Player:
-    def __init__(self, con: WebSocket, id: UUID, pos: int, other = None):
+    def __init__(self, con: WebSocket, id: UUID, pos: int, other=None):
         self.con = con
         self.id = id
         self.hand = []
         self.pos = pos
         self.other_player = other
-    
+
+
 class Game:
     def __init__(self, p1: Player, p2: Player):
         self.p1 = p1
@@ -38,7 +40,7 @@ class Game:
                 self.deck.append(j)
         random.shuffle(self.deck)
 
-    def draw_cards(self, player, parry = False):
+    def draw_cards(self, player, parry=False):
         if parry:
             return
         else:
@@ -47,14 +49,14 @@ class Game:
                 self.deck.pop()
 
     def get_state(self, own_player):
-       return {
-           "own_pos": own_player.pos,
-           "other_pos": own_player.other_player.pos,
-           "current_player": jsonable_encoder(self.current_player.id),
-           "last_action": self.last_action,
-           "own_hand": own_player.hand,
-           "other_hand": own_player.other_player.hand,
-       }
+        return {
+            "own_pos": own_player.pos,
+            "other_pos": own_player.other_player.pos,
+            "current_player": jsonable_encoder(self.current_player.id),
+            "last_action": self.last_action,
+            "own_hand": own_player.hand,
+            "other_hand": own_player.other_player.hand,
+        }
 
     async def update_state(self, data, id):
         player = self.get_player_by_id(id)
@@ -70,10 +72,11 @@ class Game:
         await self.p2.con.send_json(self.get_state(self.p2))
 
     def get_player_by_id(self, id):
-       if id == self.p1.id:
-           return self.p1
-       else:
-           return self.p2
+        if id == self.p1.id:
+            return self.p1
+        else:
+            return self.p2
+
 
 class ConnectionManager:
     def __init__(self):
@@ -106,13 +109,12 @@ class ConnectionManager:
         await websocket.send_text(message)
 
     # async def broadcast(self, message: str):
-        # for connection in self.queue:
-            # await connection.send_text(message)
-
-    
+    # for connection in self.queue:
+    # await connection.send_text(message)
 
 
 manager = ConnectionManager()
+
 
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: UUID):
