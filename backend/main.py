@@ -2,25 +2,56 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from uuid import UUID
 
+import random
+
 app = FastAPI()
 
 class Player:
-    def __init__(self, con: WebSocket, id: UUID):
+    def __init__(self, con: WebSocket, id: UUID, pos: int):
         self.con = con
         self.id = id
-
+        self.hand = []
+        self.pos = pos
+    
+    def get_state(self):
+        return {
+            "hand": self.hand,
+        }
+    
 class Game:
     def __init__(self, p1: Player, p2: Player):
         self.p1 = p1
         self.p2 = p2
+        self.deck = []
+        self.init_deck()
+        self.draw_cards(p1)
+        self.draw_cards(p2)
 
     async def start_game(self):
         await self.p1.con.send_text("los")
         await self.p2.con.send_text("los")
+        await self.p1.con.send_json(self.p1.get_state())
+        await self.p2.con.send_json(self.p2.get_state())
 
-# class GameState:
-    # def __init__(self):
+    def init_deck(self):
+        for i in range(5):
+            for j in range(1, 6):
+                self.deck.append(j)
+        random.shuffle(self.deck)
 
+    def draw_cards(self, player, parry = False):
+        if parry:
+            return
+        else:
+            for i in range(5 - len(player.hand)):
+                player.hand.append(self.deck[len(self.deck) - 1])
+                self.deck.pop()
+
+    def get_global_state(self):
+       return {
+           "pos_1": self.p1.pos,
+           "pos_2": self.p2.pos,
+       }
 
 class ConnectionManager:
     def __init__(self):
@@ -29,11 +60,13 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, id: UUID):
         await websocket.accept()
-        player = Player(websocket, id)
+        player = None
 
         if self.queue == None:
             self.queue = player
+            player = Player(websocket, id, 22)
         else:
+            player = Player(websocket, id, 0)
             game = Game(self.queue, player)
             self.games.append(game)
             await game.start_game()
