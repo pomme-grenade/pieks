@@ -124,6 +124,7 @@ tick();
 
 function updateState(newState) {
   updateCards(cardGroup.children, newState.own_hand);
+  updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
 }
 
 const sendMessage = startSockets(updateState);
