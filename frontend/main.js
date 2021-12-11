@@ -4,7 +4,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { range } from "lodash";
 import { Vector3 } from "three";
 import { startSockets } from "./web_sockets.js";
-import { createCards } from "./card";
+import { createCards, updateCards } from "./card";
+
+const moves = ["move_right", "move_left", "attack", "jump_attack", "parry"];
 
 startSockets();
 
@@ -95,6 +97,7 @@ for (let i of [0, 22]) {
 
 const cardGroup = await createCards();
 scene.add(cardGroup);
+updateCards(cardGroup.children, [1, 1, 5]);
 
 function onMouseMove(event) {
   // calculate mouse position in normalized device coordinates
