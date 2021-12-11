@@ -4,6 +4,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { range } from "lodash";
 import { Vector3 } from "three";
 import { startSockets } from "./web_sockets.js";
+import { v4 as uuidv4 } from "uuid";
 
 startSockets();
 
