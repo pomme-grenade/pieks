@@ -12,6 +12,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "lodash": "^4.17.21",
-    "three": "^0.135.0"
+    "three": "^0.135.0",
+    "uuid": "^8.3.2"
   }
 }
