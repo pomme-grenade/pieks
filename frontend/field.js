@@ -48,3 +48,10 @@ export function updatePlayers(meshes, state) {
     meshes[i].position.x = tileXPosition(pos);
   }
 }
+
+export function resetFieldColors(tiles) {
+  for (let [i, tile] of tiles.entries()) {
+    let color = i === 11 ? 0xffa000 : 0xffff00;
+    tile.material.color.set(color);
+  }
+}

@@ -5,7 +5,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Vector3 } from "three";
 import { startSockets } from "./web_sockets.js";
 import { createCards, updateCards } from "./card";
-import { createFieldTiles, createPlayers, updatePlayers } from "./field";
+import {
+  createFieldTiles,
+  createPlayers,
+  resetFieldColors,
+  updatePlayers,
+} from "./field";
 
 /**
  * Base
@@ -188,9 +193,7 @@ function onMouseClick(event) {
   for (let intersect of cardIntersects) {
     let number = intersect.object.userData.number;
     selectedCards = [number];
-    for (let field of fieldGroup) {
-      field.material.color.set(0xffff00);
-    }
+    resetFieldColors(fieldGroup);
   }
 
   if (selectedCards.length > 0) {
@@ -199,6 +202,9 @@ function onMouseClick(event) {
       fieldGroup[playerPos - selectedCards[0]].material.color.set(0xff0000);
     }
     if (legalMoves.includes("moveRight")) {
+      fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
+    }
+    if (legalMoves.includes("attack")) {
       fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
     }
   }
@@ -217,9 +223,7 @@ function onMouseClick(event) {
         selectedAction = "moveRight";
       }
 
-      for (let field of fieldGroup) {
-        field.material.color.set(0xffff00);
-      }
+      resetFieldColors(fieldGroup);
 
       sendMessage({
         action: selectedAction,
