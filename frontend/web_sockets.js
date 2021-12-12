@@ -6,12 +6,6 @@ export function startSockets(uuid, onUpdate) {
     onUpdate(JSON.parse(event.data));
   };
 
-  //function sendMessage(msg) {
-  //ws.send(msg);
-  //}
-
-  //sendMessage("asd");
-
   return (msg) => {
     ws.send(JSON.stringify(msg));
   };
