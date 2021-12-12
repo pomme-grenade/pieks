@@ -136,7 +136,7 @@ function onMouseClick(event) {
   for (let intersect of intersects) {
     let number = intersect.object.userData.number;
     sendMessage({
-      action: "moveRight",
+      action: "moveLeft",
       cards: [number],
     });
   }

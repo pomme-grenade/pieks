@@ -13,6 +13,10 @@ class Player:
         self.pos = pos
         self.other_player = other
 
+    def remove_cards(self, cards: List[int]):
+        for card in cards:
+            self.hand.remove(card)
+
 
 class Game:
     def __init__(self, p1: Player, p2: Player):
@@ -92,14 +96,23 @@ class Game:
 
     async def update_state(self, move, id):
         player = self.get_player_by_id(id)
+        if player != self.current_player:
+            print(f"Player {id} not current player, aborting")
+            return
         if move not in self.get_legal_moves(player):
             print(f"invalid move, aborting: {move}")
             return
 
         if move["action"] == "moveRight":
             player.pos += move["cards"][0]
+            player.remove_cards(move["cards"])
         elif move["action"] == "moveLeft":
             player.pos -= move["cards"][0]
+            player.remove_cards(move["cards"])
+        elif move["action"] == "parry":
+            player.remove_cards(move["cards"])
+
+        self.draw_cards(player, move["action"] == "parry")
 
         self.current_player = player.other_player
         self.last_action = move
