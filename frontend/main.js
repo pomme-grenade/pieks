@@ -193,63 +193,61 @@ function onMouseClick(_event) {
     console.log("selected cards", selectedCards);
   }
 
-  if (selectedCards.length > 0) {
-    const dirToOther = Math.sign(currentState.other_pos - playerPos);
-    const legalMoves = getLegalMoves(selectedCards);
-    if (legalMoves.includes("moveLeft")) {
-      fieldGroup[playerPos - selectedCards[0]].material.color.set(0xff0000);
-    }
-    if (legalMoves.includes("moveRight")) {
-      fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
-    }
-    if (legalMoves.includes("attack") || legalMoves.includes("jumpAttack")) {
-      fieldGroup[playerPos + selectedCards[0] * dirToOther].material.color.set(
-        0xff0000
-      );
-    }
-    if (legalMoves.includes("parry")) {
-      fieldGroup[playerPos].material.color.set(0xff000);
+  const dirToOther = Math.sign(currentState.other_pos - playerPos);
+  const legalMoves = getLegalMoves(selectedCards);
+  if (legalMoves.includes("moveLeft")) {
+    fieldGroup[playerPos - selectedCards[0]].material.color.set(0xff0000);
+  }
+  if (legalMoves.includes("moveRight")) {
+    fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
+  }
+  if (legalMoves.includes("attack") || legalMoves.includes("jumpAttack")) {
+    fieldGroup[playerPos + selectedCards[0] * dirToOther].material.color.set(
+      0xff0000
+    );
+  }
+  if (legalMoves.includes("parry")) {
+    fieldGroup[playerPos].material.color.set(0xff000);
+  }
+
+  const fieldIntersects = raycaster.intersectObjects(fieldGroup);
+
+  for (let intersect of fieldIntersects) {
+    const fieldPos = intersect.object.userData.pos;
+    const distance = fieldPos - playerPos;
+    const dir = Math.sign(distance);
+    let selectedAction;
+
+    if (dir == dirToOther && legalMoves.includes("attack")) {
+      selectedAction = "attack";
+    } else if (legalMoves.includes("jumpAttack")) {
+      selectedAction = "jumpAttack";
+    } else if (legalMoves.includes("parry")) {
+      selectedAction = "parry";
+    } else if (dir == -1 && legalMoves.includes("moveLeft")) {
+      selectedAction = "moveLeft";
+    } else if (dir == 1 && legalMoves.includes("moveRight")) {
+      selectedAction = "moveRight";
+    } else {
+      selectedAction = "skip";
     }
 
-    const fieldIntersects = raycaster.intersectObjects(fieldGroup);
+    if (selectedAction) {
+      console.log("action", selectedAction);
 
-    for (let intersect of fieldIntersects) {
-      const fieldPos = intersect.object.userData.pos;
-      const distance = fieldPos - playerPos;
-      const dir = Math.sign(distance);
-      let selectedAction;
+      resetFieldColors(fieldGroup);
 
-      if (dir == dirToOther && legalMoves.includes("attack")) {
-        selectedAction = "attack";
-      } else if (legalMoves.includes("jumpAttack")) {
-        selectedAction = "jumpAttack";
-      } else if (legalMoves.includes("parry")) {
-        selectedAction = "parry";
-      } else if (dir == -1 && legalMoves.includes("moveLeft")) {
-        selectedAction = "moveLeft";
-      } else if (dir == 1 && legalMoves.includes("moveRight")) {
-        selectedAction = "moveRight";
-      } else {
-        selectedAction = "skip";
+      sendMessage({
+        action: selectedAction,
+        cards: selectedCards,
+      });
+      for (let mesh of selectedCardMeshes) {
+        mesh.position.y -= 0.2;
       }
-
-      if (selectedAction) {
-        console.log("action", selectedAction);
-
-        resetFieldColors(fieldGroup);
-
-        sendMessage({
-          action: selectedAction,
-          cards: selectedCards,
-        });
-        for (let mesh of selectedCardMeshes) {
-          mesh.position.y -= 0.2;
-        }
-        selectedCardMeshes = [];
-        selectedCards = [];
-        selectedAction = null;
-        break;
-      }
+      selectedCardMeshes = [];
+      selectedCards = [];
+      selectedAction = null;
+      break;
     }
   }
 }

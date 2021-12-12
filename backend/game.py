@@ -65,6 +65,9 @@ class Game:
         if self.current_player != player:
             return moves
 
+        is_left_player = player.pos < player.other_player.pos
+        is_right_player = not is_left_player
+
         # parry
         was_attacked = self.last_action is not None and self.last_action["action"] in [
             "attack",
@@ -81,9 +84,32 @@ class Game:
             if self.last_action["action"] == "attack":
                 return moves
 
+        # attack
+        if not was_attacked:
+            attack_direction = 1 if is_left_player else -1
+            card_types = defaultdict(list)
+            for card in player.hand:
+                card_types[card].append(card)
+
+            can_jump_attack = self.last_player == player and self.last_action[
+                "action"
+            ] in [
+                "moveLeft",
+                "moveRight",
+            ]
+            attack_type = "jumpAttack" if can_jump_attack else "attack"
+            for card_type, multiple in card_types.items():
+                if player.pos + card_type * attack_direction == player.other_player.pos:
+                    for i in range(1, len(multiple) + 1):
+                        moves.append({"action": attack_type, "cards": multiple[:i]})
+
+            if can_jump_attack:
+                # no other moves possible
+                moves.append({"action": "skip", "cards": []})
+
+                return moves
+
         # move
-        is_left_player = player.pos < player.other_player.pos
-        is_right_player = not is_left_player
         can_not_move_left = self.last_action is not None and (
             is_right_player and self.last_action["action"] == "jumpAttack"
         )
@@ -111,22 +137,6 @@ class Game:
             ):
                 moves.append({"action": "moveRight", "cards": [card]})
 
-        # attack
-        attack_direction = 1 if is_left_player else -1
-        card_types = defaultdict(list)
-        for card in player.hand:
-            card_types[card].append(card)
-
-        for card_type, multiple in card_types.items():
-            if player.pos + card_type * attack_direction == player.other_player.pos:
-                can_jump_attack = self.last_player == player and self.last_action in [
-                    "leftMove",
-                    "rightMove",
-                ]
-                attack_type = "jumpAttack" if can_jump_attack else "attack"
-                for i in range(1, len(multiple) + 1):
-                    moves.append({"action": attack_type, "cards": multiple[:i]})
-
         return moves
 
     async def update_state(self, move, id):
@@ -145,7 +155,14 @@ class Game:
 
         player.remove_cards(move["cards"])
 
-        if move["action"] not in ["parry", "moveRight", "moveLeft"]:
+        retreated_after_jump_attack = (
+            self.last_action is not None and self.last_action["action"] == "jumpAttack"
+        )
+        can_play_again = (
+            move["action"] in ["parry", "moveLeft", "moveRight"]
+            and not retreated_after_jump_attack
+        )
+        if not can_play_again:
             self.draw_cards(player)
             self.current_player = player.other_player
 
