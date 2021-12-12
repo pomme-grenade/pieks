@@ -156,7 +156,9 @@ class Game:
         player.remove_cards(move["cards"])
 
         retreated_after_jump_attack = (
-            self.last_action is not None and self.last_action["action"] == "jumpAttack"
+            move["action"] in ["moveLeft", "moveRight"]
+            and self.last_action is not None
+            and self.last_action["action"] == "jumpAttack"
         )
         can_play_again = (
             move["action"] in ["parry", "moveLeft", "moveRight"]
