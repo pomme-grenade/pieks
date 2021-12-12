@@ -218,6 +218,8 @@ function onMouseClick(_event) {
         selectedAction = "attack";
       } else if (legalMoves.includes("jumpAttack")) {
         selectedAction = "jumpAttack";
+      } else if (legalMoves.includes("parry")) {
+        selectedAction = "parry";
       } else if (dir == -1 && legalMoves.includes("moveLeft")) {
         selectedAction = "moveLeft";
       } else if (dir == 1 && legalMoves.includes("moveRight")) {

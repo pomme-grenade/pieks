@@ -11,12 +11,16 @@ export function updateText(state, playerId) {
     state.last_action?.action == "attack" &&
     state.current_player == playerId
   ) {
-    textContent += ", you were attacked!";
+    textContent += `, you were attacked with the following cards: ${state.last_action.cards.join(
+      ", "
+    )}`;
   } else if (
     state.last_action?.action == "jumpAttack" &&
     state.current_player == playerId
   ) {
-    textContent += ", you were attacked indirectly!";
+    textContent += `, you were attacked indirectly with the following cards: ${state.last_action.cards.join(
+      ", "
+    )}`;
   }
 
   const distance = Math.abs(state.other_pos - state.own_pos);

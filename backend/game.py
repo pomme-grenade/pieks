@@ -42,14 +42,11 @@ class Game:
                 self.deck.append(j)
         random.shuffle(self.deck)
 
-    def draw_cards(self, player, parry=False):
-        if parry:
-            return
-        else:
-            # TODO handle empty cards
-            for i in range(5 - len(player.hand)):
-                player.hand.append(self.deck[len(self.deck) - 1])
-                self.deck.pop()
+    def draw_cards(self, player):
+        # TODO handle empty cards
+        for i in range(5 - len(player.hand)):
+            player.hand.append(self.deck[len(self.deck) - 1])
+            self.deck.pop()
 
     def get_state(self, own_player):
         return {
@@ -77,7 +74,7 @@ class Game:
             for card in player.hand:
                 if card == self.last_action["cards"][0]:
                     card_amount += 1
-            if card_amount == len(self.last_action["cards"]):
+            if card_amount >= len(self.last_action["cards"]):
                 moves.append({"action": "parry", "cards": self.last_action["cards"]})
                 # if there was a direct attack, no other moves are possible
             if self.last_action["action"] == "attack":
@@ -121,7 +118,8 @@ class Game:
 
         for card_type, multiple in card_types.items():
             if player.pos + card_type * attack_direction == player.other_player.pos:
-                moves.append({"action": "attack", "cards": multiple})
+                for i in range(1, len(multiple) + 1):
+                    moves.append({"action": "attack", "cards": multiple[:i]})
 
         return moves
 
@@ -143,9 +141,10 @@ class Game:
         elif move["action"] == "parry":
             player.remove_cards(move["cards"])
 
-        self.draw_cards(player, move["action"] == "parry")
+        if move["action"] != "parry":
+            self.draw_cards(player)
+            self.current_player = player.other_player
 
-        self.current_player = player.other_player
         self.last_action = move
 
         await self.p1.con.send_json(self.get_state(self.p1))
