@@ -2,6 +2,7 @@ from fastapi import WebSocket
 from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 from typing import List
+from collections import defaultdict
 import random
 
 
@@ -98,9 +99,13 @@ class Game:
                 moves.append({"action": "moveRight", "cards": [card]})
 
         # attack
+        card_types = defaultdict(list)
         for card in player.hand:
-            if player.pos + card == player.other_player.pos:
-                moves.append({"action": "attack", "cards": [card]})
+            card_types[card].append(card)
+
+        for card_type, multiple in card_types.items():
+            if player.pos + card_type == player.other_player.pos:
+                moves.append({"action": "attack", "cards": multiple})
 
         return moves
 
