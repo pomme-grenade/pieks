@@ -229,6 +229,8 @@ function onMouseClick(_event) {
         selectedAction = "moveLeft";
       } else if (dir == 1 && legalMoves.includes("moveRight")) {
         selectedAction = "moveRight";
+      } else {
+        selectedAction = "skip";
       }
 
       if (selectedAction) {

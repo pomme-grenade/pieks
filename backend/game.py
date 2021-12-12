@@ -123,13 +123,9 @@ class Game:
                     "leftMove",
                     "rightMove",
                 ]
-                attack_type = (
-                    "jumpAttack"
-                    if self.last_player != None and can_jump_attack
-                    else "attack"
-                )
+                attack_type = "jumpAttack" if can_jump_attack else "attack"
                 for i in range(1, len(multiple) + 1):
-                    moves.append({"action": "attack", "cards": multiple[:i]})
+                    moves.append({"action": attack_type, "cards": multiple[:i]})
 
         return moves
 
@@ -149,7 +145,7 @@ class Game:
 
         player.remove_cards(move["cards"])
 
-        if move["action"] != "parry":
+        if move["action"] not in ["parry", "moveRight", "moveLeft"]:
             self.draw_cards(player)
             self.current_player = player.other_player
 
