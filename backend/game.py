@@ -50,21 +50,20 @@ class Game:
                 self.deck.pop()
 
     def get_state(self, own_player):
-        state = {
+        return {
             "own_pos": own_player.pos,
             "other_pos": own_player.other_player.pos,
             "current_player": jsonable_encoder(self.current_player.id),
             "last_action": self.last_action,
             "own_hand": own_player.hand,
+            "next_moves": self.get_legal_moves(own_player),
         }
-
-        if self.current_player == own_player:
-            state["next_moves"] = self.get_legal_moves(own_player)
-
-        return state
 
     def get_legal_moves(self, player):
         moves = []
+
+        if self.current_player != player:
+            return moves
 
         # parry
         was_attacked = self.last_action is not None and self.last_action["action"] in [
