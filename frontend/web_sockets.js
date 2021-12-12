@@ -1,5 +1,6 @@
 export function startSockets(uuid, onUpdate) {
-  const ws = new WebSocket(`ws://localhost:8000/ws/${uuid}`);
+  let domain = window.location.host.split(":")[0];
+  const ws = new WebSocket(`ws://${domain}:8000/ws/${uuid}`);
 
   ws.onmessage = function (event) {
     console.log(event.data);
