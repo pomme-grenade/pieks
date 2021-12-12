@@ -66,3 +66,11 @@ export function updateCards(meshes, state) {
     }
   }
 }
+
+export function raycastCards(raycaster, cardGroup) {
+  // calculate objects intersecting the picking ray
+  const cardIntersects = raycaster.intersectObjects(cardGroup.children);
+  return cardIntersects
+    .map((intersect) => [intersect.object, intersect.object.userData.number])
+    .filter(([_, number]) => number !== undefined);
+}

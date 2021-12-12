@@ -4,13 +4,15 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Vector3 } from "three";
 import { startSockets } from "./web_sockets.js";
-import { createCards, updateCards } from "./card";
+import { createCards, raycastCards, updateCards } from "./card";
 import {
   createFieldTiles,
   createPlayers,
   resetFieldColors,
   updatePlayers,
 } from "./field";
+import { updateText } from "./text";
+import { isEqual, pull, pullAll, pullAt, remove } from "lodash";
 
 /**
  * Base
@@ -29,6 +31,7 @@ const raycaster = new THREE.Raycaster();
 
 let currentState = null;
 let selectedCards = [];
+let selectedCardMeshes = [];
 let selectedAction = null;
 
 /**
@@ -116,17 +119,12 @@ const tick = () => {
   }
 
   if (currentState) {
-    // calculate objects intersecting the picking ray
-    const cardIntersects = raycaster.intersectObjects(cardGroup.children);
-
-    let cards = new Set(
-      currentState.next_moves.map((move) => move.cards).flat()
-    );
-
-    for (let intersect of cardIntersects) {
-      const number = intersect.object.userData.number;
-      if (typeof number !== "undefined" && cards.has(number)) {
-        intersect.object.material.color.set(0xff0000);
+    for (let [mesh, number] of raycastCards(raycaster, cardGroup)) {
+      if (
+        selectedCardMeshes.includes(mesh) ||
+        getLegalMoves([...selectedCards, number]).length > 0
+      ) {
+        mesh.material.color.set(0xff0000);
       }
     }
   }
@@ -143,57 +141,53 @@ const tick = () => {
 
 tick();
 
-function updateState(newState) {
+function newStateReceived(newState) {
   currentState = newState;
   updateCards(cardGroup.children, newState.own_hand);
   updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
   playerMeshes[0].material.color = new THREE.Color(0x5050ff);
 
-  let textContent = "";
-
-  if (newState.current_player === playerId) {
-    textContent += `Your turn`;
-  } else {
-    textContent += `Other player's turn`;
-  }
-
-  if (newState.last_action?.action == "attack") {
-    textContent += ", you were attacked!";
-  } else if (newState.last_action?.action == "jumpAttack") {
-    textContent += ", you were attacked indirectly!";
-  }
-
-  const distance = Math.abs(newState.other_pos - newState.own_pos);
-  textContent += ` - distance: ${distance}`;
-
-  text.textContent = textContent;
+  text.textContent = updateText(newState, playerId);
 }
 
 function getLegalMoves(cards) {
   const moves = [];
   for (let move of currentState.next_moves) {
-    if (cards[0] == move.cards[0]) {
+    if (isEqual(cards, move.cards)) {
       moves.push(move.action);
     }
   }
   return moves;
 }
 
-const sendMessage = startSockets(playerId, updateState);
+const sendMessage = startSockets(playerId, newStateReceived);
 text.textContent = "Finding a match...";
 
 function onMouseClick(event) {
   const playerPos = currentState.own_pos;
 
-  const cardIntersects = raycaster
-    .intersectObjects(cardGroup.children)
-    // Pick only objects that are cards (meaning they have a number)
-    .filter((o) => typeof o.object.userData.number !== "undefined");
-
-  for (let intersect of cardIntersects) {
-    let number = intersect.object.userData.number;
-    selectedCards = [number];
-    resetFieldColors(fieldGroup);
+  for (let [mesh, number] of raycastCards(raycaster, cardGroup)) {
+    if (selectedCardMeshes.includes(mesh)) {
+      // remove card from selected cards
+      mesh.position.y -= 0.2;
+      selectedCardMeshes = pull(selectedCardMeshes, mesh);
+      // find a single matching number from our card list and remove it
+      for (let [i, card] of selectedCards.entries()) {
+        if (card === number) {
+          pullAt(selectedCards, i);
+          break;
+        }
+      }
+    } else {
+      let newSelectedCards = [...selectedCards, number];
+      if (getLegalMoves(newSelectedCards).length > 0) {
+        mesh.position.y += 0.2;
+        resetFieldColors(fieldGroup);
+        selectedCards = newSelectedCards;
+        selectedCardMeshes.push(mesh);
+      }
+    }
+    console.log("selected cards", selectedCards);
   }
 
   if (selectedCards.length > 0) {
@@ -229,6 +223,10 @@ function onMouseClick(event) {
         action: selectedAction,
         cards: selectedCards,
       });
+      for (let mesh of selectedCardMeshes) {
+        mesh.position.y -= 0.2;
+      }
+      selectedCardMeshes = [];
       selectedCards = [];
       selectedAction = null;
     }
