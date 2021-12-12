@@ -53,39 +53,40 @@ class Game:
             "last_action": self.last_action,
             "own_hand": own_player.hand,
             "other_hand": own_player.other_player.hand,
+            "next_moves": self.get_legal_moves(own_player),
         }
 
-    def is_valid_move(self, player, move):
-        if self.current_player != player:
-            return False
+    def get_legal_moves(self, player):
+        moves = []
 
-        if move["action"] == "moveRight":
-            new_pos = player.pos + move["cards"][0]
-            if new_pos > 22 or new_pos > player.other_player.pos:
-                return False
+        # parry
+        was_attacked = self.last_action is not None and self.last_action["action"] in [
+            "attack",
+            "jumpAttack",
+        ]
+        if was_attacked:
+            moves.append({"action": "parry", "cards": self.last_action.cards})
+            # if there was a direct attack, no other moves are possible
+            if self.last_action["action"] == "attack":
+                return moves
 
-        elif move["action"] == "moveLeft":
-            new_pos = player.pos - move["cards"][0]
-            if new_pos < 0 or new_pos < player.other_player.pos:
-                return False
+        # move
+        for card in player.hand:
+            if player.pos - card >= 0:
+                moves.append({"action": "moveLeft", "cards": [card]})
+            if player.pos + card <= 22:
+                moves.append({"action": "moveRight", "cards": [card]})
 
-        elif move["action"] == "attack":
-            # check that all cards have equal values
-            first_card = move["cards"][0]
-            for other_card in move["cards"]:
-                if other_card != first_card:
-                    return False
+        # attack
+        for card in player.hand:
+            if player.pos + card == player.other_player.pos:
+                moves.append({"action": "attack", "cards": [card]})
 
-            # check that positions match the card value
-            attack_position = player.pos + first_card
-            if attack_position != player.other_player.pos:
-                return False
-
-        return True
+        return moves
 
     async def update_state(self, move, id):
         player = self.get_player_by_id(id)
-        if not self.is_valid_move(player, move):
+        if move not in self.get_legal_moves(player):
             print(f"invalid move, aborting: {move}")
             return
 
