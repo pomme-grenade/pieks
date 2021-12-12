@@ -29,6 +29,7 @@ class Game:
         self.draw_cards(p2)
         self.current_player = p1
         self.last_action = None
+        self.last_player = None
 
     async def start_game(self):
         # await self.p1.con.send_text("los")
@@ -118,6 +119,15 @@ class Game:
 
         for card_type, multiple in card_types.items():
             if player.pos + card_type * attack_direction == player.other_player.pos:
+                can_jump_attack = self.last_player == player and self.last_action in [
+                    "leftMove",
+                    "rightMove",
+                ]
+                attack_type = (
+                    "jumpAttack"
+                    if self.last_player != None and can_jump_attack
+                    else "attack"
+                )
                 for i in range(1, len(multiple) + 1):
                     moves.append({"action": "attack", "cards": multiple[:i]})
 
@@ -146,6 +156,7 @@ class Game:
             self.current_player = player.other_player
 
         self.last_action = move
+        self.last_player = player
 
         await self.p1.con.send_json(self.get_state(self.p1))
         await self.p2.con.send_json(self.get_state(self.p2))
