@@ -20,6 +20,7 @@ export function createFieldTiles() {
     });
     const plane = new THREE.Mesh(geometry, material);
     plane.position.x = tileXPosition(i);
+    plane.userData.pos = [i];
     return plane;
   });
 }

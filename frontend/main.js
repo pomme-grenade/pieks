@@ -18,6 +18,9 @@ const scene = new THREE.Scene();
 const mousePosition = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 
+let currentState = null;
+let selectedCards = [];
+
 /**
  * Sizes
  */
@@ -57,7 +60,8 @@ const controls = new OrbitControls(camera, canvas);
 controls.target = new Vector3(0, -0.5, 0);
 controls.enableDamping = true;
 
-scene.add(...createFieldTiles());
+const fieldGroup = createFieldTiles();
+scene.add(...fieldGroup);
 const playerMeshes = createPlayers();
 scene.add(...playerMeshes);
 
@@ -101,11 +105,20 @@ const tick = () => {
     card.material.color.set(0xffffff);
   }
 
-  // calculate objects intersecting the picking ray
-  const intersects = raycaster.intersectObjects(cardGroup.children);
+  if (currentState) {
+    // calculate objects intersecting the picking ray
+    const cardIntersects = raycaster.intersectObjects(cardGroup.children);
 
-  for (let intersect of intersects) {
-    intersect.object.material.color.set(0xff0000);
+    let cards = new Set(
+      currentState.next_moves.map((move) => move.cards).flat()
+    );
+
+    for (let intersect of cardIntersects) {
+      const number = intersect.object.userData.number;
+      if (typeof number !== "undefined" && cards.has(number)) {
+        intersect.object.material.color.set(0xff0000);
+      }
+    }
   }
 
   // Update controls
@@ -121,6 +134,7 @@ const tick = () => {
 tick();
 
 function updateState(newState) {
+  currentState = newState;
   updateCards(cardGroup.children, newState.own_hand);
   updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
 }
@@ -128,17 +142,39 @@ function updateState(newState) {
 const sendMessage = startSockets(updateState);
 
 function onMouseClick(event) {
-  const intersects = raycaster
+  const cardIntersects = raycaster
     .intersectObjects(cardGroup.children)
     // Pick only objects that are cards (meaning they have a number)
     .filter((o) => typeof o.object.userData.number !== "undefined");
 
-  for (let intersect of intersects) {
+  let cards = new Set(currentState.next_moves.map((move) => move.cards).flat());
+
+  for (let intersect of cardIntersects) {
     let number = intersect.object.userData.number;
-    sendMessage({
-      action: "moveLeft",
-      cards: [number],
-    });
+    selectedCards = [number];
+  }
+
+  const fieldIntersects = raycaster.intersectObjects(fieldGroup);
+
+  for (let intersect of fieldIntersects) {
+    if (selectedCards.length != 0) {
+      const playerPos = currentState.own_pos;
+      const fieldPos = intersect.object.userData.pos;
+      const distance = fieldPos - playerPos;
+      const dir = Math.sign(distance);
+      let selectedAction = "";
+
+      if (dir == -1) {
+        selectedAction = "moveLeft";
+      } else if (dir == 1) {
+        selectedAction = "moveRight";
+      }
+
+      sendMessage({
+        action: selectedAction,
+        cards: selectedCards,
+      });
+    }
   }
 }
 
