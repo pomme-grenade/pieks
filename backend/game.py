@@ -75,10 +75,10 @@ class Game:
         if was_attacked:
             card_amount = 0
             for card in player.hand:
-                if card == self.last_action.cards[0]:
+                if card == self.last_action["cards"][0]:
                     card_amount += 1
-            if card_amount == len(self.last_action.cards):
-                moves.append({"action": "parry", "cards": self.last_action.cards})
+            if card_amount == len(self.last_action["cards"]):
+                moves.append({"action": "parry", "cards": self.last_action["cards"]})
                 # if there was a direct attack, no other moves are possible
             if self.last_action["action"] == "attack":
                 return moves
@@ -114,12 +114,13 @@ class Game:
                 moves.append({"action": "moveRight", "cards": [card]})
 
         # attack
+        attack_direction = 1 if is_left_player else -1
         card_types = defaultdict(list)
         for card in player.hand:
             card_types[card].append(card)
 
         for card_type, multiple in card_types.items():
-            if player.pos + card_type == player.other_player.pos:
+            if player.pos + card_type * attack_direction == player.other_player.pos:
                 moves.append({"action": "attack", "cards": multiple})
 
         return moves

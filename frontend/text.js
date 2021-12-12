@@ -7,9 +7,15 @@ export function updateText(state, playerId) {
     textContent += `Other player's turn`;
   }
 
-  if (state.last_action?.action == "attack") {
+  if (
+    state.last_action?.action == "attack" &&
+    state.current_player == playerId
+  ) {
     textContent += ", you were attacked!";
-  } else if (state.last_action?.action == "jumpAttack") {
+  } else if (
+    state.last_action?.action == "jumpAttack" &&
+    state.current_player == playerId
+  ) {
     textContent += ", you were attacked indirectly!";
   }
 

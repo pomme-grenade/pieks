@@ -211,31 +211,36 @@ function onMouseClick(_event) {
       const fieldPos = intersect.object.userData.pos;
       const distance = fieldPos - playerPos;
       const dir = Math.sign(distance);
-      const dirToOther = currentState.other_pos - playerPos;
+      const dirToOther = Math.sign(currentState.other_pos - playerPos);
       let selectedAction;
 
       if (dir == dirToOther && legalMoves.includes("attack")) {
         selectedAction = "attack";
+      } else if (legalMoves.includes("jumpAttack")) {
+        selectedAction = "jumpAttack";
       } else if (dir == -1 && legalMoves.includes("moveLeft")) {
         selectedAction = "moveLeft";
       } else if (dir == 1 && legalMoves.includes("moveRight")) {
         selectedAction = "moveRight";
       }
-      console.log("action", selectedAction);
 
-      resetFieldColors(fieldGroup);
+      if (selectedAction) {
+        console.log("action", selectedAction);
 
-      sendMessage({
-        action: selectedAction,
-        cards: selectedCards,
-      });
-      for (let mesh of selectedCardMeshes) {
-        mesh.position.y -= 0.2;
+        resetFieldColors(fieldGroup);
+
+        sendMessage({
+          action: selectedAction,
+          cards: selectedCards,
+        });
+        for (let mesh of selectedCardMeshes) {
+          mesh.position.y -= 0.2;
+        }
+        selectedCardMeshes = [];
+        selectedCards = [];
+        selectedAction = null;
+        break;
       }
-      selectedCardMeshes = [];
-      selectedCards = [];
-      selectedAction = null;
-      break;
     }
   }
 }
