@@ -29,7 +29,7 @@ export function createPlayers() {
   const playerHeight = 0.2;
   return [0, 22].map((i) => {
     const geometry = new THREE.CylinderGeometry(0.15, 0.15, playerHeight);
-    const material = new THREE.MeshBasicMaterial({ color: 0xfafafa });
+    const material = new THREE.MeshBasicMaterial({ color: 0x404070 });
     const cube = new THREE.Mesh(geometry, material);
     cube.rotation.x = Math.PI / 2;
     cube.position.x = tileXPosition(i);

@@ -142,6 +142,7 @@ function updateState(newState) {
   currentState = newState;
   updateCards(cardGroup.children, newState.own_hand);
   updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
+  playerMeshes[0].material.color = new THREE.Color(0x5050ff);
 
   let textContent = "";
 
@@ -149,6 +150,12 @@ function updateState(newState) {
     textContent += `Your turn`;
   } else {
     textContent += `Other player's turn`;
+  }
+
+  if (newState.last_action?.action == "attack") {
+    textContent += ", you were attacked!";
+  } else if (newState.last_action?.action == "jumpAttack") {
+    textContent += ", you were attacked indirectly!";
   }
 
   const distance = Math.abs(newState.other_pos - newState.own_pos);
