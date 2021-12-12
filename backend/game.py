@@ -73,13 +73,26 @@ class Game:
             "jumpAttack",
         ]
         if was_attacked:
-            moves.append({"action": "parry", "cards": self.last_action.cards})
-            # if there was a direct attack, no other moves are possible
+            card_amount = 0
+            for card in player.hand:
+                if card == self.last_action.cards[0]:
+                    card_amount += 1
+            if card_amount == len(self.last_action.cards):
+                moves.append({"action": "parry", "cards": self.last_action.cards})
+                # if there was a direct attack, no other moves are possible
             if self.last_action["action"] == "attack":
                 return moves
 
         # move
         is_left_player = player.pos < player.other_player.pos
+        is_right_player = not is_left_player
+        can_not_move_left = self.last_action is not None and (
+            is_right_player and self.last_action["action"] == "jumpAttack"
+        )
+        can_not_move_right = self.last_action is not None and (
+            is_left_player and self.last_action["action"] == "jumpAttack"
+        )
+
         for card in player.hand:
             new_pos = player.pos - card
             will_stay_left_player = new_pos < player.other_player.pos
@@ -87,6 +100,7 @@ class Game:
                 new_pos >= 0
                 and is_left_player == will_stay_left_player
                 and new_pos != player.other_player.pos
+                and not can_not_move_left
             ):
                 moves.append({"action": "moveLeft", "cards": [card]})
             new_pos = player.pos + card
@@ -95,6 +109,7 @@ class Game:
                 new_pos <= 22
                 and is_left_player == will_stay_left_player
                 and new_pos != player.other_player.pos
+                and not can_not_move_right
             ):
                 moves.append({"action": "moveRight", "cards": [card]})
 
