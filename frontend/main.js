@@ -24,6 +24,7 @@ const raycaster = new THREE.Raycaster();
 
 let currentState = null;
 let selectedCards = [];
+let selectedAction = null;
 
 /**
  * Sizes
@@ -156,10 +157,23 @@ function updateState(newState) {
   text.textContent = textContent;
 }
 
+function getLegalMoves(cards) {
+  const moves = [];
+  for (let move of currentState.next_moves) {
+    if (cards[0] == move.cards[0]) {
+      moves.push(move.action);
+    }
+  }
+  return moves;
+}
+
 const sendMessage = startSockets(playerId, updateState);
 text.textContent = "Finding a match...";
 
 function onMouseClick(event) {
+  let moves = [];
+  const playerPos = currentState.own_pos;
+
   const cardIntersects = raycaster
     .intersectObjects(cardGroup.children)
     // Pick only objects that are cards (meaning they have a number)
@@ -172,26 +186,42 @@ function onMouseClick(event) {
     selectedCards = [number];
   }
 
+  if (selectedCards.length > 0) {
+    moves = getLegalMoves(selectedCards);
+    if (moves.includes("moveLeft")) {
+      fieldGroup[playerPos - selectedCards[0]].material.color.set(0xff0000);
+    }
+    if (moves.includes("moveRight")) {
+      fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
+    }
+  }
+
   const fieldIntersects = raycaster.intersectObjects(fieldGroup);
 
   for (let intersect of fieldIntersects) {
-    if (selectedCards.length != 0) {
-      const playerPos = currentState.own_pos;
-      const fieldPos = intersect.object.userData.pos;
-      const distance = fieldPos - playerPos;
-      const dir = Math.sign(distance);
-      let selectedAction = "";
+    const fieldPos = intersect.object.userData.pos;
+    const distance = fieldPos - playerPos;
+    const dir = Math.sign(distance);
 
+    if (selectedCards.length != 0) {
       if (dir == -1) {
         selectedAction = "moveLeft";
       } else if (dir == 1) {
         selectedAction = "moveRight";
       }
 
+      if (moves.includes("moveLeft")) {
+        fieldGroup[playerPos - selectedCards[0]].material.color.set(0xffff00);
+      }
+      if (moves.includes("moveRight")) {
+        fieldGroup[playerPos + selectedCards[0]].material.color.set(0xffff00);
+      }
+
       sendMessage({
         action: selectedAction,
         cards: selectedCards,
       });
+      selectedCards = [];
     }
   }
 }
