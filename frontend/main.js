@@ -6,8 +6,6 @@ import { startSockets } from "./web_sockets.js";
 import { createCards, updateCards } from "./card";
 import { createFieldTiles, createPlayers, updatePlayers } from "./field";
 
-const moves = ["move_right", "move_left", "attack", "jump_attack", "parry"];
-
 /**
  * Base
  */

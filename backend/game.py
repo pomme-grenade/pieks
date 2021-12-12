@@ -46,15 +46,18 @@ class Game:
                 self.deck.pop()
 
     def get_state(self, own_player):
-        return {
+        state = {
             "own_pos": own_player.pos,
             "other_pos": own_player.other_player.pos,
             "current_player": jsonable_encoder(self.current_player.id),
             "last_action": self.last_action,
             "own_hand": own_player.hand,
-            "other_hand": own_player.other_player.hand,
-            "next_moves": self.get_legal_moves(own_player),
         }
+
+        if self.current_player == own_player:
+            state["next_moves"] = self.get_legal_moves(own_player)
+
+        return state
 
     def get_legal_moves(self, player):
         moves = []
@@ -71,10 +74,13 @@ class Game:
                 return moves
 
         # move
+        is_left_player = player.pos < player.other_player.pos
         for card in player.hand:
-            if player.pos - card >= 0:
+            will_stay_left_player = player.pos - card < player.other_player.pos
+            if player.pos - card >= 0 and is_left_player == will_stay_left_player:
                 moves.append({"action": "moveLeft", "cards": [card]})
-            if player.pos + card <= 22:
+            will_stay_left_player = player.pos + card < player.other_player.pos
+            if player.pos + card <= 22 and is_left_player == will_stay_left_player:
                 moves.append({"action": "moveRight", "cards": [card]})
 
         # attack
@@ -96,7 +102,7 @@ class Game:
             player.pos -= move["cards"][0]
 
         self.current_player = player.other_player
-        self.last_action = move["action"]
+        self.last_action = move
 
         await self.p1.con.send_json(self.get_state(self.p1))
         await self.p2.con.send_json(self.get_state(self.p2))
