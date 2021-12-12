@@ -194,6 +194,7 @@ function onMouseClick(_event) {
   }
 
   if (selectedCards.length > 0) {
+    const dirToOther = Math.sign(currentState.other_pos - playerPos);
     const legalMoves = getLegalMoves(selectedCards);
     if (legalMoves.includes("moveLeft")) {
       fieldGroup[playerPos - selectedCards[0]].material.color.set(0xff0000);
@@ -201,8 +202,13 @@ function onMouseClick(_event) {
     if (legalMoves.includes("moveRight")) {
       fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
     }
-    if (legalMoves.includes("attack")) {
-      fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
+    if (legalMoves.includes("attack") || legalMoves.includes("jumpAttack")) {
+      fieldGroup[playerPos + selectedCards[0] * dirToOther].material.color.set(
+        0xff0000
+      );
+    }
+    if (legalMoves.includes("parry")) {
+      fieldGroup[playerPos].material.color.set(0xff000);
     }
 
     const fieldIntersects = raycaster.intersectObjects(fieldGroup);
@@ -211,7 +217,6 @@ function onMouseClick(_event) {
       const fieldPos = intersect.object.userData.pos;
       const distance = fieldPos - playerPos;
       const dir = Math.sign(distance);
-      const dirToOther = Math.sign(currentState.other_pos - playerPos);
       let selectedAction;
 
       if (dir == dirToOther && legalMoves.includes("attack")) {
