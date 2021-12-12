@@ -32,7 +32,6 @@ const raycaster = new THREE.Raycaster();
 let currentState = null;
 let selectedCards = [];
 let selectedCardMeshes = [];
-let selectedAction = null;
 
 /**
  * Sizes
@@ -163,7 +162,11 @@ function getLegalMoves(cards) {
 const sendMessage = startSockets(playerId, newStateReceived);
 text.textContent = "Finding a match...";
 
-function onMouseClick(event) {
+function onMouseClick(_event) {
+  if (currentState === null) {
+    return;
+  }
+
   const playerPos = currentState.own_pos;
 
   for (let [mesh, number] of raycastCards(raycaster, cardGroup)) {
@@ -201,21 +204,24 @@ function onMouseClick(event) {
     if (legalMoves.includes("attack")) {
       fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
     }
-  }
 
-  const fieldIntersects = raycaster.intersectObjects(fieldGroup);
+    const fieldIntersects = raycaster.intersectObjects(fieldGroup);
 
-  if (selectedCards.length != 0) {
     for (let intersect of fieldIntersects) {
       const fieldPos = intersect.object.userData.pos;
       const distance = fieldPos - playerPos;
       const dir = Math.sign(distance);
+      const dirToOther = currentState.other_pos - playerPos;
+      let selectedAction;
 
-      if (dir == -1) {
+      if (dir == dirToOther && legalMoves.includes("attack")) {
+        selectedAction = "attack";
+      } else if (dir == -1 && legalMoves.includes("moveLeft")) {
         selectedAction = "moveLeft";
-      } else if (dir == 1) {
+      } else if (dir == 1 && legalMoves.includes("moveRight")) {
         selectedAction = "moveRight";
       }
+      console.log("action", selectedAction);
 
       resetFieldColors(fieldGroup);
 
@@ -229,6 +235,7 @@ function onMouseClick(event) {
       selectedCardMeshes = [];
       selectedCards = [];
       selectedAction = null;
+      break;
     }
   }
 }
