@@ -134,12 +134,10 @@ class Game:
 
         if move["action"] == "moveRight":
             player.pos += move["cards"][0]
-            player.remove_cards(move["cards"])
         elif move["action"] == "moveLeft":
             player.pos -= move["cards"][0]
-            player.remove_cards(move["cards"])
-        elif move["action"] == "parry":
-            player.remove_cards(move["cards"])
+
+        player.remove_cards(move["cards"])
 
         if move["action"] != "parry":
             self.draw_cards(player)
