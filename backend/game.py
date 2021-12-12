@@ -80,11 +80,21 @@ class Game:
         # move
         is_left_player = player.pos < player.other_player.pos
         for card in player.hand:
-            will_stay_left_player = player.pos - card < player.other_player.pos
-            if player.pos - card >= 0 and is_left_player == will_stay_left_player:
+            new_pos = player.pos - card
+            will_stay_left_player = new_pos < player.other_player.pos
+            if (
+                new_pos >= 0
+                and is_left_player == will_stay_left_player
+                and new_pos != player.other_player.pos
+            ):
                 moves.append({"action": "moveLeft", "cards": [card]})
-            will_stay_left_player = player.pos + card < player.other_player.pos
-            if player.pos + card <= 22 and is_left_player == will_stay_left_player:
+            new_pos = player.pos + card
+            will_stay_left_player = new_pos < player.other_player.pos
+            if (
+                new_pos <= 22
+                and is_left_player == will_stay_left_player
+                and new_pos != player.other_player.pos
+            ):
                 moves.append({"action": "moveRight", "cards": [card]})
 
         # attack
