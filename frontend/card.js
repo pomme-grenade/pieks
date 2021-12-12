@@ -31,6 +31,9 @@ export async function createCards() {
     const card = new THREE.Mesh(bgMesh, bgMat);
     card.position.y = -2;
     card.position.x = cardXPosition(i, cardCount);
+    // invisible until the game starts: `updateCards` will then
+    // make the cards visible
+    card.visible = false;
 
     const textMesh = new THREE.PlaneGeometry(cardWidth, cardWidth);
     const textMat = new THREE.MeshBasicMaterial({
@@ -40,7 +43,6 @@ export async function createCards() {
     const textPlane = new THREE.Mesh(textMesh, textMat);
     textPlane.position.z += 0.1;
     card.add(textPlane);
-
     cardGroup.add(card);
   }
   return cardGroup;
