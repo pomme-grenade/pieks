@@ -1,7 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
-
-export function startSockets(onUpdate) {
-  const uuid = uuidv4();
+export function startSockets(uuid, onUpdate) {
   const ws = new WebSocket(`ws://localhost:8000/ws/${uuid}`);
 
   ws.onmessage = function (event) {

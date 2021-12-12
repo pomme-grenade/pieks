@@ -45,6 +45,7 @@ class Game:
         if parry:
             return
         else:
+            # TODO handle empty cards
             for i in range(5 - len(player.hand)):
                 player.hand.append(self.deck[len(self.deck) - 1])
                 self.deck.pop()

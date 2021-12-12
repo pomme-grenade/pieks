@@ -1,4 +1,5 @@
 import "./style.css";
+import { v4 as uuidv4 } from "uuid";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Vector3 } from "three";
@@ -11,6 +12,9 @@ import { createFieldTiles, createPlayers, updatePlayers } from "./field";
  */
 // Canvas
 const canvas = document.querySelector("canvas.webgl");
+const text = document.querySelector("#text");
+
+const playerId = uuidv4();
 
 // Scene
 const scene = new THREE.Scene();
@@ -123,9 +127,23 @@ tick();
 function updateState(newState) {
   updateCards(cardGroup.children, newState.own_hand);
   updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
+
+  let textContent = "";
+
+  if (newState.current_player === playerId) {
+    textContent += `Your turn`;
+  } else {
+    textContent += `Other player's turn`;
+  }
+
+  const distance = Math.abs(newState.other_pos - newState.own_pos);
+  textContent += ` - distance: ${distance}`;
+
+  text.textContent = textContent;
 }
 
-const sendMessage = startSockets(updateState);
+const sendMessage = startSockets(playerId, updateState);
+text.textContent = "Finding a match...";
 
 function onMouseClick(event) {
   const intersects = raycaster
