@@ -178,7 +178,6 @@ const sendMessage = startSockets(playerId, updateState);
 text.textContent = "Finding a match...";
 
 function onMouseClick(event) {
-  let moves = [];
   const playerPos = currentState.own_pos;
 
   const cardIntersects = raycaster
@@ -186,42 +185,40 @@ function onMouseClick(event) {
     // Pick only objects that are cards (meaning they have a number)
     .filter((o) => typeof o.object.userData.number !== "undefined");
 
-  let cards = new Set(currentState.next_moves.map((move) => move.cards).flat());
-
   for (let intersect of cardIntersects) {
     let number = intersect.object.userData.number;
     selectedCards = [number];
+    for (let field of fieldGroup) {
+      field.material.color.set(0xffff00);
+    }
   }
 
   if (selectedCards.length > 0) {
-    moves = getLegalMoves(selectedCards);
-    if (moves.includes("moveLeft")) {
+    const legalMoves = getLegalMoves(selectedCards);
+    if (legalMoves.includes("moveLeft")) {
       fieldGroup[playerPos - selectedCards[0]].material.color.set(0xff0000);
     }
-    if (moves.includes("moveRight")) {
+    if (legalMoves.includes("moveRight")) {
       fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
     }
   }
 
   const fieldIntersects = raycaster.intersectObjects(fieldGroup);
 
-  for (let intersect of fieldIntersects) {
-    const fieldPos = intersect.object.userData.pos;
-    const distance = fieldPos - playerPos;
-    const dir = Math.sign(distance);
+  if (selectedCards.length != 0) {
+    for (let intersect of fieldIntersects) {
+      const fieldPos = intersect.object.userData.pos;
+      const distance = fieldPos - playerPos;
+      const dir = Math.sign(distance);
 
-    if (selectedCards.length != 0) {
       if (dir == -1) {
         selectedAction = "moveLeft";
       } else if (dir == 1) {
         selectedAction = "moveRight";
       }
 
-      if (moves.includes("moveLeft")) {
-        fieldGroup[playerPos - selectedCards[0]].material.color.set(0xffff00);
-      }
-      if (moves.includes("moveRight")) {
-        fieldGroup[playerPos + selectedCards[0]].material.color.set(0xffff00);
+      for (let field of fieldGroup) {
+        field.material.color.set(0xffff00);
       }
 
       sendMessage({
@@ -229,6 +226,7 @@ function onMouseClick(event) {
         cards: selectedCards,
       });
       selectedCards = [];
+      selectedAction = null;
     }
   }
 }
