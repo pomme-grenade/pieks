@@ -1,5 +1,6 @@
 import { range } from "lodash";
 import * as THREE from "three";
+import colors from "./colors";
 
 const fieldCount = 23;
 const fieldWidth = 0.4;
@@ -8,14 +9,9 @@ function tileXPosition(i) {
 }
 
 export function createFieldTiles() {
-  return range(fieldCount).map((i) => {
+  let meshes = range(fieldCount).map((i) => {
     const geometry = new THREE.PlaneGeometry(fieldWidth, 1);
-    let color = 0xffff00;
-    if (i === 11) {
-      color = 0xffa000;
-    }
     const material = new THREE.MeshBasicMaterial({
-      color,
       side: THREE.FrontSide,
     });
     const plane = new THREE.Mesh(geometry, material);
@@ -23,13 +19,15 @@ export function createFieldTiles() {
     plane.userData.pos = [i];
     return plane;
   });
+  resetFieldColors(meshes);
+  return meshes;
 }
 
 export function createPlayers() {
   const playerHeight = 0.2;
   return [0, 22].map((i) => {
     const geometry = new THREE.CylinderGeometry(0.15, 0.15, playerHeight);
-    const material = new THREE.MeshBasicMaterial({ color: 0x404070 });
+    const material = new THREE.MeshBasicMaterial({ color: colors.green });
     const cube = new THREE.Mesh(geometry, material);
     cube.rotation.x = Math.PI / 2;
     cube.position.x = tileXPosition(i);
@@ -51,7 +49,7 @@ export function updatePlayers(meshes, state) {
 
 export function resetFieldColors(tiles) {
   for (let [i, tile] of tiles.entries()) {
-    let color = i === 11 ? 0xffa000 : 0xffff00;
+    let color = i === 11 ? colors.yellowLight : colors.yellow;
     tile.material.color.set(color);
   }
 }

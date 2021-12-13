@@ -5,6 +5,7 @@ import url4 from "./assets/4.png";
 import url5 from "./assets/5.png";
 import { range, zip } from "lodash";
 import * as THREE from "three";
+import colors from "./colors";
 
 const loader = new THREE.TextureLoader();
 const textures = await Promise.all(
@@ -25,7 +26,7 @@ export async function createCards() {
   for (let i of range(0, cardCount)) {
     const bgMesh = new THREE.PlaneGeometry(cardWidth, cardHeight);
     const bgMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      color: colors.white,
       side: THREE.FrontSide,
     });
     const card = new THREE.Mesh(bgMesh, bgMat);

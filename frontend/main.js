@@ -13,6 +13,7 @@ import {
 } from "./field";
 import { updateText } from "./text";
 import { isEqual, pull, pullAll, pullAt, remove } from "lodash";
+import colors from "./colors";
 
 /**
  * Base
@@ -98,6 +99,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(colors.black);
 
 /**
  * Animate
@@ -114,7 +116,7 @@ const tick = () => {
   raycaster.setFromCamera(mousePosition, camera);
 
   for (let card of cardGroup.children) {
-    card.material.color.set(0xffffff);
+    card.material.color.set(colors.white);
   }
 
   if (currentState) {
@@ -123,7 +125,7 @@ const tick = () => {
         selectedCardMeshes.includes(mesh) ||
         getLegalMoves([...selectedCards, number]).length > 0
       ) {
-        mesh.material.color.set(0xff0000);
+        mesh.material.color.set(colors.purple);
       }
     }
   }
@@ -144,7 +146,7 @@ function newStateReceived(newState) {
   currentState = newState;
   updateCards(cardGroup.children, newState.own_hand);
   updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
-  playerMeshes[0].material.color = new THREE.Color(0x5050ff);
+  playerMeshes[0].material.color = new THREE.Color(colors.greenLight);
 
   text.textContent = updateText(newState, playerId);
 }
@@ -196,18 +198,18 @@ function onMouseClick(_event) {
   const dirToOther = Math.sign(currentState.other_pos - playerPos);
   const legalMoves = getLegalMoves(selectedCards);
   if (legalMoves.includes("moveLeft")) {
-    fieldGroup[playerPos - selectedCards[0]].material.color.set(0xff0000);
+    fieldGroup[playerPos - selectedCards[0]].material.color.set(colors.red);
   }
   if (legalMoves.includes("moveRight")) {
-    fieldGroup[playerPos + selectedCards[0]].material.color.set(0xff0000);
+    fieldGroup[playerPos + selectedCards[0]].material.color.set(colors.red);
   }
   if (legalMoves.includes("attack") || legalMoves.includes("jumpAttack")) {
     fieldGroup[playerPos + selectedCards[0] * dirToOther].material.color.set(
-      0xff0000
+      colors.red
     );
   }
   if (legalMoves.includes("parry")) {
-    fieldGroup[playerPos].material.color.set(0xff000);
+    fieldGroup[playerPos].material.color.set(colors.green);
   }
 
   const fieldIntersects = raycaster.intersectObjects(fieldGroup);
