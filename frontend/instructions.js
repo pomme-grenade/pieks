@@ -20,7 +20,7 @@ export function getInstructions(state, playerId) {
     switch (action) {
       case "parry":
         const length = wordForNumber(cards.length);
-        return `Your enemy attacked you directly. Parry their attack by selecting ${length} ${cards[0]}s.`;
+        return `Your enemy attacked you. Parry their attack by selecting ${length} ${cards[0]}s.`;
       case "skip":
         return "End your turn by clicking on the playing field.";
       case "move":
@@ -57,7 +57,7 @@ function wordForNumber(number) {
 
 function describeCardRange(cards) {
   if (cards.length == 1) {
-    return `a ${cards[0]}`;
+    return `a ${cards[0]} card`;
   } else {
     return `up to ${wordForNumber(cards.length)} ${cards[0]}s`;
   }
