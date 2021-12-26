@@ -70,7 +70,7 @@ controls.enableDamping = true;
 const clock = new THREE.Clock();
 let lastElapsedTime = 0;
 
-await initGame(scene, camera, onSceneChange());
+await initGame(scene, camera, onGameOver);
 const scenes = {
   menu: createMenuScene(),
   game: scene,
@@ -87,8 +87,8 @@ function onServerUpdate(info) {
   }
 }
 
-function onSceneChange(newScene) {
-  console.log("scene changed");
+function onGameOver(didWin) {
+  console.log("game over", didWin);
 }
 
 const playerId = uuidv4();
