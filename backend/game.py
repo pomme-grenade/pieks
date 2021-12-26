@@ -32,8 +32,16 @@ class Game:
         self.last_player = None
 
     async def start_game(self):
-        # await self.p1.con.send_text("los")
-        # await self.p2.con.send_text("los")
+        await self.p1.con.send_json(
+            {
+                "event": "game_start",
+            }
+        )
+        await self.p2.con.send_json(
+            {
+                "event": "game_start",
+            }
+        )
         await self.p1.con.send_json(self.get_state(self.p1))
         await self.p2.con.send_json(self.get_state(self.p2))
 

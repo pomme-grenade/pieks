@@ -1,7 +1,10 @@
 import * as THREE from "three";
 import { Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { initGame, updateGame } from "./game.js";
+import { initGame, updateGame, updateState } from "./game.js";
+import { createMenuScene, createGameOverScene } from "./scenes";
+import { startSockets } from "./web_sockets.js";
+import { v4 as uuidv4 } from "uuid";
 import colors from "./colors";
 import "./style.css";
 
@@ -67,20 +70,50 @@ controls.enableDamping = true;
 const clock = new THREE.Clock();
 let lastElapsedTime = 0;
 
-await initGame(scene, camera);
+await initGame(scene, camera, onSceneChange());
+const scenes = {
+  menu: createMenuScene(),
+  game: scene,
+  gameOver: createGameOverScene(),
+};
+
+let currentScene = "menu";
+
+function onServerUpdate(info) {
+  if (info["event"] === "game_start") {
+    currentScene = "game";
+  } else {
+    updateState(info, playerId, text);
+  }
+}
+
+function onSceneChange(newScene) {
+  console.log("scene changed");
+}
+
+const playerId = uuidv4();
+
+const sendMessage = startSockets(playerId, onServerUpdate);
+text.textContent = "Finding a match...";
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
   const deltaTime = elapsedTime - lastElapsedTime;
   lastElapsedTime = elapsedTime;
 
-  updateGame(deltaTime);
-
   // Update controls
   controls.update();
 
   // Render
-  renderer.render(scene, camera);
+
+  if (currentScene === "menu") {
+    renderer.render(scenes.menu, camera);
+  } else if (currentScene === "gameOver") {
+    renderer.render(scenes.gameOver, camera);
+  } else {
+    updateGame(deltaTime);
+    renderer.render(scenes.game, camera);
+  }
 
   // Call tick again on the next frame
   window.requestAnimationFrame(tick);

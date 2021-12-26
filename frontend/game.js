@@ -1,7 +1,6 @@
 import { isEqual, pull, pullAt } from "lodash";
 import * as THREE from "three";
 import { createCards, raycastCards, updateCards } from "./card";
-import { v4 as uuidv4 } from "uuid";
 import colors from "./colors";
 import {
   createFieldTiles,
@@ -11,9 +10,6 @@ import {
 } from "./field";
 import "./style.css";
 import { updateText } from "./text";
-import { startSockets } from "./web_sockets.js";
-
-const playerId = uuidv4();
 
 const mousePosition = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
@@ -27,14 +23,17 @@ const playerMeshes = createPlayers();
 
 let camera;
 let cardGroup;
+let onSceneChange;
 
-export async function initGame(scene, cam) {
+export async function initGame(scene, cam, sceneChanged) {
   camera = cam;
   scene.add(...fieldGroup);
   scene.add(...playerMeshes);
 
   cardGroup = await createCards();
   scene.add(cardGroup);
+
+  onSceneChange = sceneChanged;
 }
 
 function onMouseMove(event) {
@@ -66,7 +65,7 @@ export function updateGame(dt) {
   }
 }
 
-function newStateReceived(newState) {
+export function updateState(newState, playerId, text) {
   currentState = newState;
   updateCards(cardGroup.children, newState.own_hand);
   updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
@@ -87,9 +86,6 @@ function getLegalMoves(cards) {
   //}
   return moves;
 }
-
-const sendMessage = startSockets(playerId, newStateReceived);
-text.textContent = "Finding a match...";
 
 function onMouseClick(_event) {
   if (currentState === null) {
