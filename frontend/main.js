@@ -70,7 +70,22 @@ controls.enableDamping = true;
 const clock = new THREE.Clock();
 let lastElapsedTime = 0;
 
-await initGame(scene, camera, onGameOver);
+const playerId = uuidv4();
+
+function onServerUpdate(info) {
+  if (info["event"] === "game_start") {
+    currentScene = "game";
+  } else if (info["event"] === "game_over") {
+    currentScene = "gameOver";
+  } else {
+    updateState(info, playerId, text);
+  }
+}
+
+const sendMessage = startSockets(playerId, onServerUpdate);
+text.textContent = "Finding a match...";
+
+await initGame(scene, camera, sendMessage);
 const scenes = {
   menu: createMenuScene(),
   game: scene,
@@ -78,23 +93,6 @@ const scenes = {
 };
 
 let currentScene = "menu";
-
-function onServerUpdate(info) {
-  if (info["event"] === "game_start") {
-    currentScene = "game";
-  } else {
-    updateState(info, playerId, text);
-  }
-}
-
-function onGameOver(didWin) {
-  console.log("game over", didWin);
-}
-
-const playerId = uuidv4();
-
-const sendMessage = startSockets(playerId, onServerUpdate);
-text.textContent = "Finding a match...";
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();

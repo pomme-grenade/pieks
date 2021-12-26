@@ -54,6 +54,8 @@ class Game:
     def draw_cards(self, player):
         # TODO handle empty cards
         for i in range(5 - len(player.hand)):
+            if len(self.deck) == 0:
+                return
             player.hand.append(self.deck[len(self.deck) - 1])
             self.deck.pop()
 
@@ -179,8 +181,16 @@ class Game:
         self.last_action = move
         self.last_player = player
 
+        # new_state = self.get_state(self.p1)
         await self.p1.con.send_json(self.get_state(self.p1))
         await self.p2.con.send_json(self.get_state(self.p2))
+
+        other_player_moves = self.get_state(player.other_player)["next_moves"]
+        if len(self.deck) == 0 or (
+            len(other_player_moves) == 0 and not self.current_player == player
+        ):
+            await self.p1.con.send_json({"event": "game_over"})
+            await self.p2.con.send_json({"event": "game_over"})
 
     def get_player_by_id(self, id):
         if id == self.p1.id:

@@ -23,9 +23,9 @@ const playerMeshes = createPlayers();
 
 let camera;
 let cardGroup;
-let gameOver;
+let sendMessage;
 
-export async function initGame(scene, cam, onGameOver) {
+export async function initGame(scene, cam, onSendMessage) {
   camera = cam;
   scene.add(...fieldGroup);
   scene.add(...playerMeshes);
@@ -33,7 +33,7 @@ export async function initGame(scene, cam, onGameOver) {
   cardGroup = await createCards();
   scene.add(cardGroup);
 
-  gameOver = onGameOver;
+  sendMessage = onSendMessage;
 }
 
 function onMouseMove(event) {
@@ -81,9 +81,6 @@ function getLegalMoves(cards) {
       moves.push(move.action);
     }
   }
-  //if (moves.length == 0) {
-
-  //}
   return moves;
 }
 
