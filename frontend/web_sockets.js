@@ -1,8 +1,10 @@
 export function startSockets(uuid, onUpdate) {
   let domain = window.location.host.split(":")[0];
-  let port = import.meta.env.DEV ? ":8000" : "";
-  let basePath = import.meta.env.PROD ? "/api/ws" : "/ws";
-  const ws = new WebSocket(`ws://${domain}${port}${basePath}/${uuid}`);
+  let url = `ws://${domain}:8000/ws/${uuid}`;
+  if (import.meta.env.PROD) {
+    url = `wss://${domain}/api/ws/${uuid}`;
+  }
+  const ws = new WebSocket(url);
 
   ws.onmessage = function (event) {
     console.log(event.data);
