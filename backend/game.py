@@ -186,11 +186,40 @@ class Game:
         await self.p2.con.send_json(self.get_state(self.p2))
 
         other_player_moves = self.get_state(player.other_player)["next_moves"]
-        if len(self.deck) == 0 or (
-            len(other_player_moves) == 0 and not self.current_player == player
-        ):
+        if len(self.deck) == 0 and not "parry" in other_player_moves:
+            if self.get_winner() == self.p1:
+                await self.p1.con.send_json({"event": "game_over", "winner": "won"})
+                await self.p2.con.send_json({"event": "game_over", "winner": "lost"})
+            elif self.get_winner() == self.p2:
+                await self.p2.con.send_json({"event": "game_over", "winner": "won"})
+                await self.p1.con.send_json({"event": "game_over", "winner": "lost"})
+            else:
+                await self.p2.con.send_json({"event": "game_over", "winner": "draw"})
+                await self.p1.con.send_json({"event": "game_over", "winner": "draw"})
+        elif len(other_player_moves) == 0 and not self.current_player == player:
             await self.p1.con.send_json({"event": "game_over"})
             await self.p2.con.send_json({"event": "game_over"})
+
+    def get_winner(self):
+        player = self.current_player
+        other_player = player.other_player
+        is_left_player = player.pos < other_player.pos
+        is_right_player = not is_left_player
+
+        winner = self.current_player
+        center = 11
+
+        if is_left_player:
+            distLeft = center - player.pos
+            distRight = other_player.pos - 11
+            winner = player if distLeft < distRight else other_player
+        else:
+            distLeft = center - other_player.pos
+            distRight = player.pos - 11
+            winner = other_player if distLeft < distRight else player
+
+        winner = None if distLeft == distRight else winner
+        return winner
 
     def get_player_by_id(self, id):
         if id == self.p1.id:

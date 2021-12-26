@@ -76,7 +76,8 @@ function onServerUpdate(info) {
   if (info["event"] === "game_start") {
     currentScene = "game";
   } else if (info["event"] === "game_over") {
-    currentScene = "gameOver";
+    currentScene = "game";
+    //currentScene = "gameOver";
   } else {
     updateState(info, playerId, text);
   }
