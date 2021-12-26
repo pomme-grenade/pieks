@@ -7,9 +7,11 @@ import { startSockets } from "./web_sockets.js";
 import { v4 as uuidv4 } from "uuid";
 import colors from "./colors";
 import "./style.css";
+import { getInstructions } from "./instructions.js";
 
 const canvas = document.querySelector("canvas.webgl");
-const text = document.querySelector("#text");
+const statusText = document.querySelector("#status");
+const instructionText = document.querySelector("#instructions");
 
 // Scene
 const scene = new THREE.Scene();
@@ -79,12 +81,13 @@ function onServerUpdate(info) {
     currentScene = "game";
     //currentScene = "gameOver";
   } else {
-    updateState(info, playerId, text);
+    updateState(info, playerId, statusText);
+    instructionText.textContent = getInstructions(info, playerId);
   }
 }
 
 const sendMessage = startSockets(playerId, onServerUpdate);
-text.textContent = "Finding a match...";
+statusText.textContent = "Finding a match...";
 
 await initGame(scene, camera, sendMessage);
 const scenes = {
