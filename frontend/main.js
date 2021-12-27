@@ -7,9 +7,11 @@ import { startSockets } from "./web_sockets.js";
 import { v4 as uuidv4 } from "uuid";
 import colors from "./colors";
 import "./style.css";
+import { getInstructions } from "./instructions.js";
 
 const canvas = document.querySelector("canvas.webgl");
-const text = document.querySelector("#text");
+const statusText = document.querySelector("#status");
+const instructionText = document.querySelector("#instructions");
 
 // Scene
 const scene = new THREE.Scene();
@@ -76,15 +78,19 @@ function onServerUpdate(info) {
   if (info["event"] === "game_start") {
     currentScene = "game";
   } else if (info["event"] === "game_over") {
-    currentScene = "game";
-    //currentScene = "gameOver";
+    // currentScene = "game";
+    currentScene = "gameOver";
+  } else if (info["event"] === "other_player_disconnected") {
+    statusText.textContent =
+      "Other player lost their connection to the server. Waiting for them to reconnect...";
   } else {
-    updateState(info, playerId, text);
+    updateState(info, playerId, statusText);
+    instructionText.textContent = getInstructions(info, playerId);
   }
 }
 
 const sendMessage = startSockets(playerId, onServerUpdate);
-text.textContent = "Finding a match...";
+statusText.textContent = "Finding a match...";
 
 await initGame(scene, camera, sendMessage);
 const scenes = {

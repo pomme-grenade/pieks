@@ -31,6 +31,10 @@ class Game:
         self.last_action = None
         self.last_player = None
 
+    async def send_each(self, json):
+        await self.p1.con.send_json(json)
+        await self.p2.con.send_json(json)
+
     async def start_game(self):
         await self.p1.con.send_json(
             {

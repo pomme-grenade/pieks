@@ -1,11 +1,14 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 html,
 body {
   overflow: hidden;
+  color: white;
+  font-family: sans-serif;
 }
 
 .webgl {
@@ -15,11 +18,19 @@ body {
   outline: none;
 }
 
-#text {
-  color: white;
+#text-container {
   position: fixed;
-  bottom: 1em;
-  left: 1em;
+  display: flex;
   z-index: 100;
-  font-family: sans-serif;
+  bottom: 1em;
+  padding: 0 1em;
+  width: 100vw;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+#instructions {
+  max-width: 70em;
+  color: #a89984;
+  white-space: pre-line;
 }
