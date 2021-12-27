@@ -4,10 +4,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { initGame, updateGame, updateState } from "./game.js";
 import { createMenuScene, createGameOverScene } from "./scenes";
 import { startSockets } from "./web_sockets.js";
-import { v4 as uuidv4 } from "uuid";
 import colors from "./colors";
 import "./style.css";
 import { getInstructions } from "./instructions.js";
+import { getPlayerId } from "./player_id.js";
 
 const canvas = document.querySelector("canvas.webgl");
 const statusText = document.querySelector("#status");
@@ -72,7 +72,7 @@ controls.enableDamping = true;
 const clock = new THREE.Clock();
 let lastElapsedTime = 0;
 
-const playerId = uuidv4();
+const playerId = getPlayerId();
 
 function onServerUpdate(info) {
   if (info["event"] === "game_start") {
@@ -83,6 +83,10 @@ function onServerUpdate(info) {
   } else if (info["event"] === "other_player_disconnected") {
     statusText.textContent =
       "Other player lost their connection to the server. Waiting for them to reconnect...";
+  } else if (info["event"] === "connection_lost") {
+    statusText.textContent = "Lost connection to server. Reconnecting...";
+  } else if (info["event"]) {
+    console.warn("unhandled event received:", info["event"]);
   } else {
     updateState(info, playerId, statusText);
     instructionText.textContent = getInstructions(info, playerId);

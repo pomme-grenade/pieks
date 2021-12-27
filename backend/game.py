@@ -46,8 +46,7 @@ class Game:
                 "event": "game_start",
             }
         )
-        await self.p1.con.send_json(self.get_state(self.p1))
-        await self.p2.con.send_json(self.get_state(self.p2))
+        await self.send_state_to_players()
 
     def init_deck(self):
         for i in range(5):
@@ -185,9 +184,7 @@ class Game:
         self.last_action = move
         self.last_player = player
 
-        # new_state = self.get_state(self.p1)
-        await self.p1.con.send_json(self.get_state(self.p1))
-        await self.p2.con.send_json(self.get_state(self.p2))
+        await self.send_state_to_players()
 
         other_player_moves = self.get_state(player.other_player)["next_moves"]
         if len(self.deck) == 0 and not "parry" in other_player_moves:
@@ -225,7 +222,13 @@ class Game:
         winner = None if distLeft == distRight else winner
         return winner
 
-    def get_player_by_id(self, id):
+    async def send_state_to_players(self):
+        if self.p1.con is not None:
+            await self.p1.con.send_json(self.get_state(self.p1))
+        if self.p2.con is not None:
+            await self.p2.con.send_json(self.get_state(self.p2))
+
+    def get_player_by_id(self, id) -> Player:
         if id == self.p1.id:
             return self.p1
         else:

@@ -16,11 +16,26 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, id: UUID):
         await websocket.accept()
 
-        if self.queue is None:
+        existing_game = self.games.get(id)
+        if existing_game is not None:
+            print("reconnecting player")
+            player = existing_game.get_player_by_id(id)
+            if player.con is not None:
+                print("player already connected, doing nothing")
+                return
+            player.con = websocket
+            await websocket.send_json({"event": "game_start"})
+            await existing_game.send_state_to_players()
+        elif self.queue is None:
+            print("queuing player")
             player = Player(websocket, id, 22)
             self.queue = player
-            print("queued player")
         else:
+            print("creating new game")
+            if self.queue.id == id:
+                print("Not creating game with the same two ids, doing nothing")
+                return
+
             new_player = Player(websocket, id, 0, self.queue)
             self.queue.other_player = new_player
             game = Game(self.queue, new_player)
@@ -28,7 +43,6 @@ class ConnectionManager:
             self.games[new_player.id] = game
             self.queue = None
             await game.start_game()
-            print("created game")
 
     async def disconnect(self, websocket: WebSocket, id: UUID):
         # If player is queued, remove them from queue
@@ -37,8 +51,13 @@ class ConnectionManager:
         else:
             # send disconnect message to other player
             game = self.games[id]
+            game.get_player_by_id(id).con = None
             other_player = game.p1 if game.p1.id != id else game.p2
-            await other_player.con.send_json({"event": "other_player_disconnected"})
+            if other_player.con is None:
+                # todo both players left, remove the game
+                pass
+            else:
+                await other_player.con.send_json({"event": "other_player_disconnected"})
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
