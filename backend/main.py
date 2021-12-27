@@ -30,10 +30,15 @@ class ConnectionManager:
             await game.start_game()
             print("created game")
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket, id: UUID):
         # If player is queued, remove them from queue
         if self.queue is not None and self.queue.con == websocket:
             self.queue = None
+        else:
+            # send disconnect message to other player
+            game = self.games[id]
+            other_player = game.p1 if game.p1.id != id else game.p2
+            await other_player.con.send_json({"event": "other_player_disconnected"})
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
@@ -54,4 +59,4 @@ async def websocket_endpoint(websocket: WebSocket, client_id: UUID):
             data = await websocket.receive_json()
             await manager.games[client_id].update_state(data, client_id)
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
+        await manager.disconnect(websocket, client_id)

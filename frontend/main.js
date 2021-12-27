@@ -80,6 +80,9 @@ function onServerUpdate(info) {
   } else if (info["event"] === "game_over") {
     // currentScene = "game";
     currentScene = "gameOver";
+  } else if (info["event"] === "other_player_disconnected") {
+    statusText.textContent =
+      "Other player lost their connection to the server. Waiting for them to reconnect...";
   } else {
     updateState(info, playerId, statusText);
     instructionText.textContent = getInstructions(info, playerId);
