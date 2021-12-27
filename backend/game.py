@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 from player import Player
 import random
 
@@ -15,7 +15,7 @@ class Game:
         self.draw_cards(p2)
         self.current_player = p1
         self.last_action = None
-        self.last_player = None
+        self.last_player: Optional[Player] = None
 
     async def send_each(self, json):
         await self.p1.con.send_json(json)
@@ -32,7 +32,6 @@ class Game:
         random.shuffle(self.deck)
 
     def draw_cards(self, player):
-        # TODO handle empty cards
         for i in range(5 - len(player.hand)):
             if len(self.deck) == 0:
                 return
@@ -136,7 +135,8 @@ class Game:
         if player != self.current_player:
             print(f"Player {id} not current player, aborting")
             return
-        if move not in self.get_legal_moves(player):
+        legal_moves = self.get_legal_moves(player)
+        if move not in legal_moves:
             print(f"invalid move, aborting: {move}")
             return
 
@@ -156,8 +156,7 @@ class Game:
         self.last_action = move
         self.last_player = player
 
-        own_next_moves = self.get_state(player)["next_moves"]
-        own_next_moves = [x["action"] for x in own_next_moves]
+        own_next_moves = [x["action"] for x in legal_moves]
 
         can_play_again = (
             move["action"] in ["parry", "moveLeft", "moveRight"]
@@ -172,7 +171,7 @@ class Game:
         await self.send_state_to_players()
 
         other_player_moves = self.get_state(player.other_player)["next_moves"]
-        if len(self.deck) == 0 and not "parry" in other_player_moves:
+        if len(self.deck) == 0 and "parry" not in other_player_moves:
             winner = self.get_winner()
             await self.send_game_over(winner)
         # only check for game end if the current player changes
@@ -180,14 +179,7 @@ class Game:
             await self.send_game_over(player)
 
     async def send_game_over(self, winner):
-        if self.p1.con is not None:
-            await self.p1.con.send_json(
-                {"event": "game_over", "winner": jsonable_encoder(winner.id)}
-            )
-        if self.p2.con is not None:
-            await self.p2.con.send_json(
-                {"event": "game_over", "winner": jsonable_encoder(winner.id)}
-            )
+        self.send_each({"event": "game_over", "winner": jsonable_encoder(winner.id)})
 
     def get_winner(self):
         player = self.current_player
