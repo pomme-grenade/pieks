@@ -2,7 +2,11 @@ import * as THREE from "three";
 import { Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { initGame, updateGame, updateState } from "./game.js";
-import { createMenuScene, createGameOverScene } from "./scenes";
+import {
+  createMenuScene,
+  createGameOverScene,
+  createTextGeometry,
+} from "./scenes";
 import { startSockets } from "./web_sockets.js";
 import colors from "./colors";
 import "./style.css";
@@ -79,7 +83,15 @@ function onServerUpdate(info) {
     currentScene = "game";
   } else if (info["event"] === "game_over") {
     // currentScene = "game";
+    const hasWon = info["winner"] === playerId;
+    const description = hasWon ? "w i n" : "l o s e";
     currentScene = "gameOver";
+    scenes[currentScene].add(
+      new THREE.Mesh(
+        createTextGeometry(description),
+        new THREE.MeshStandardMaterial({ color: colors.orange })
+      )
+    );
   } else if (info["event"] === "other_player_disconnected") {
     statusText.textContent =
       "Other player lost their connection to the server. Waiting for them to reconnect...";
