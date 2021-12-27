@@ -18,7 +18,7 @@ export function updateText(state, playerId) {
     state.last_action?.action == "jumpAttack" &&
     state.current_player == playerId
   ) {
-    textContent += `, you were attacked indirectly with the following cards: ${state.last_action.cards.join(
+    textContent += `, your enemy lunged at you with the following cards: ${state.last_action.cards.join(
       ", "
     )}`;
   }

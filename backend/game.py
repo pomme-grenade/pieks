@@ -190,28 +190,24 @@ class Game:
             self.draw_cards(player)
             self.current_player = player.other_player
 
-        new_state_p1 = self.get_state(self.p1)
-        new_state_p2 = self.get_state(self.p2)
-
-        if self.p1.con is not None:
-            await self.p1.con.send_json(new_state_p1)
-        if self.p2.con is not None:
-            await self.p2.con.send_json(new_state_p2)
+        await self.send_state_to_players()
 
         other_player_moves = self.get_state(player.other_player)["next_moves"]
         if len(self.deck) == 0 and not "parry" in other_player_moves:
             if self.get_winner() == self.p1:
-                await send_game_over("won", "lost")
+                await self.send_game_over("won", "lost")
             elif self.get_winner() == self.p2:
-                await send_game_over("lost", "won")
+                await self.send_game_over("lost", "won")
             else:
-                await send_game_over("draw", "draw")
+                await self.send_game_over("draw", "draw")
         elif len(other_player_moves) == 0 and not self.current_player == player:
-            await send_game_over("won", "lost")
+            await self.send_game_over("won", "lost")
 
-    async def send_game_over(first, second):
-        await self.p1.con.send_json({"event": "game_over", "winner": first})
-        await self.p2.con.send_json({"event": "game_over", "winner": second})
+    async def send_game_over(self, first, second):
+        if self.p1.con is not None:
+            await self.p1.con.send_json({"event": "game_over", "winner": first})
+        if self.p2.con is not None:
+            await self.p2.con.send_json({"event": "game_over", "winner": second})
 
     def get_winner(self):
         player = self.current_player

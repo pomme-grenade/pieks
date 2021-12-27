@@ -20,22 +20,23 @@ export function getInstructions(state, playerId) {
     switch (action) {
       case "parry":
         const length = wordForNumber(cards.length);
-        return `Your enemy attacked you. Parry their attack by selecting ${length} ${cards[0]}s.`;
+        return `Parry the enemy's attack by selecting ${length} ${cards[0]}s.`;
       case "skip":
         return "End your turn by clicking on the playing field.";
       case "move":
+        // todo change this for evading quick attacks
         return "Select a card and click the playing field to move your player.";
       case "attack":
         range = describeCardRange(cards);
         return `Select ${range} to attack your enemy directly.`;
       case "jumpAttack":
         range = describeCardRange(cards);
-        return `Select ${range} to lunge at your opponent for an indirect attack.`;
+        return `Select ${range} to lunge at your opponent.`;
     }
   });
 
   if (actions.length > 1) {
-    result += "Choose one of the following:\n\n";
+    result += "Choose a move:\n\n";
     actions = actions.map((text) => `- ${text}`);
   }
 
