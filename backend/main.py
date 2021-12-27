@@ -50,21 +50,18 @@ class ConnectionManager:
             self.queue = None
         else:
             # send disconnect message to other player
-            game = self.games[id]
-            game.get_player_by_id(id).con = None
-            other_player = game.p1 if game.p1.id != id else game.p2
-            if other_player.con is None:
+            game = self.games.get(id)
+            if game is None:
+                return
+            player = game.get_player_by_id(id)
+            player.con = None
+            if player.other_player.con is None:
                 # todo both players left, remove the game
                 pass
             else:
-                await other_player.con.send_json({"event": "other_player_disconnected"})
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    # async def broadcast(self, message: str):
-    # for connection in self.queue:
-    # await connection.send_text(message)
+                await player.other_player.con.send_json(
+                    {"event": "other_player_disconnected"}
+                )
 
 
 manager = ConnectionManager()
