@@ -19,7 +19,7 @@ export function createCanvasTexture() {
   ctx.font = "100px sans-serif";
   ctx.textBaseline = "middle";
   ctx.textAlign = "center";
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = "#928374";
   const texture = new CanvasTexture(ctx.canvas);
   return new MeshBasicMaterial({
     map: texture,
@@ -41,7 +41,7 @@ export function createDistanceText(leftPlayerPos, rightPlayerPos) {
   textMesh.position.y = -0.85;
 
   const lines = [leftPlayerPos, rightPlayerPos].map((pos) => {
-    const lineMat = new LineBasicMaterial({ color: colors.aqua });
+    const lineMat = new LineBasicMaterial({ color: colors.blackLight });
     const lineGeom = new BufferGeometry().setFromPoints(
       getLinePoints(pos, textMesh.position)
     );
