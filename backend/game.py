@@ -10,12 +10,14 @@ class Game:
         self.p1 = p1
         self.p2 = p2
         self.deck: List[int] = []
-        self.init_deck()
-        self.draw_cards(p1)
-        self.draw_cards(p2)
         self.current_player = p1
         self.last_action = None
         self.last_player: Optional[Player] = None
+        self.is_over = False
+
+        self.init_deck()
+        self.draw_cards(p1)
+        self.draw_cards(p2)
 
     async def send_each(self, json):
         await self.p1.con.send_json(json)
@@ -175,13 +177,16 @@ class Game:
         other_player_moves = self.get_state(player.other_player)["next_moves"]
         if len(self.deck) == 0 and "parry" not in other_player_moves:
             winner = self.get_winner()
-            await self.send_game_over(winner)
+            await self.game_over(winner)
         # only check for game end if the current player changes
         elif len(other_player_moves) == 0 and not self.current_player == player:
-            await self.send_game_over(player)
+            await self.game_over(player)
 
-    async def send_game_over(self, winner):
-        self.send_each({"event": "game_over", "winner": jsonable_encoder(winner.id)})
+    async def game_over(self, winner):
+        self.is_over = True
+        await self.send_each(
+            {"event": "game_over", "winner": jsonable_encoder(winner.id)}
+        )
 
     def get_winner(self):
         player = self.current_player

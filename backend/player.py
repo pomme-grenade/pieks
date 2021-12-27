@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from collections import defaultdict
 from fastapi import WebSocket
 from uuid import UUID
@@ -6,11 +6,11 @@ from uuid import UUID
 
 class Player:
     def __init__(self, con: WebSocket, id: UUID, pos: int, other=None):
-        self.con = con
+        self.con: Optional[WebSocket] = con
         self.id = id
         self.hand: List[int] = []
         self.pos = pos
-        self.other_player = other
+        self.other_player: Player = other
 
     def remove_cards(self, cards: List[int]):
         for card in cards:
