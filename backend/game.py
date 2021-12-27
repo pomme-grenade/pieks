@@ -173,33 +173,45 @@ class Game:
             and self.last_action is not None
             and self.last_action["action"] == "jumpAttack"
         )
-        can_play_again = (
-            move["action"] in ["parry", "moveLeft", "moveRight"]
-            and not retreated_after_jump_attack
-        )
-        if not can_play_again:
-            self.draw_cards(player)
-            self.current_player = player.other_player
 
         self.last_action = move
         self.last_player = player
 
-        await self.send_state_to_players()
+        own_next_moves = self.get_state(player)["next_moves"]
+        own_next_moves = [x["action"] for x in own_next_moves]
+
+        can_play_again = (
+            move["action"] in ["parry", "moveLeft", "moveRight"]
+            and not retreated_after_jump_attack
+            and not ("skip" in own_next_moves and len(own_next_moves) == 1)
+        )
+
+        if not can_play_again:
+            self.draw_cards(player)
+            self.current_player = player.other_player
+
+        new_state_p1 = self.get_state(self.p1)
+        new_state_p2 = self.get_state(self.p2)
+
+        if self.p1.con is not None:
+            await self.p1.con.send_json(new_state_p1)
+        if self.p2.con is not None:
+            await self.p2.con.send_json(new_state_p2)
 
         other_player_moves = self.get_state(player.other_player)["next_moves"]
         if len(self.deck) == 0 and not "parry" in other_player_moves:
             if self.get_winner() == self.p1:
-                await self.p1.con.send_json({"event": "game_over", "winner": "won"})
-                await self.p2.con.send_json({"event": "game_over", "winner": "lost"})
+                await send_game_over("won", "lost")
             elif self.get_winner() == self.p2:
-                await self.p2.con.send_json({"event": "game_over", "winner": "won"})
-                await self.p1.con.send_json({"event": "game_over", "winner": "lost"})
+                await send_game_over("lost", "won")
             else:
-                await self.p2.con.send_json({"event": "game_over", "winner": "draw"})
-                await self.p1.con.send_json({"event": "game_over", "winner": "draw"})
+                await send_game_over("draw", "draw")
         elif len(other_player_moves) == 0 and not self.current_player == player:
-            await self.p1.con.send_json({"event": "game_over"})
-            await self.p2.con.send_json({"event": "game_over"})
+            await send_game_over("won", "lost")
+
+    async def send_game_over(first, second):
+        await self.p1.con.send_json({"event": "game_over", "winner": first})
+        await self.p2.con.send_json({"event": "game_over", "winner": second})
 
     def get_winner(self):
         player = self.current_player
