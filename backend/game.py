@@ -156,6 +156,8 @@ class Game:
         self.last_action = move
         self.last_player = player
 
+        # re-calculate legal moves for the new state
+        legal_moves = self.get_legal_moves(player)
         own_next_moves = [x["action"] for x in legal_moves]
 
         can_play_again = (
