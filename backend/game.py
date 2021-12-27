@@ -1,22 +1,8 @@
-from fastapi import WebSocket
 from fastapi.encoders import jsonable_encoder
 from uuid import UUID
-from typing import List
-from collections import defaultdict
+from typing import List, Optional
+from player import Player
 import random
-
-
-class Player:
-    def __init__(self, con: WebSocket, id: UUID, pos: int, other=None):
-        self.con = con
-        self.id = id
-        self.hand: List[int] = []
-        self.pos = pos
-        self.other_player = other
-
-    def remove_cards(self, cards: List[int]):
-        for card in cards:
-            self.hand.remove(card)
 
 
 class Game:
@@ -24,28 +10,21 @@ class Game:
         self.p1 = p1
         self.p2 = p2
         self.deck: List[int] = []
+        self.current_player = p1
+        self.last_action = None
+        self.last_player: Optional[Player] = None
+        self.is_over = False
+
         self.init_deck()
         self.draw_cards(p1)
         self.draw_cards(p2)
-        self.current_player = p1
-        self.last_action = None
-        self.last_player = None
 
     async def send_each(self, json):
         await self.p1.con.send_json(json)
         await self.p2.con.send_json(json)
 
     async def start_game(self):
-        await self.p1.con.send_json(
-            {
-                "event": "game_start",
-            }
-        )
-        await self.p2.con.send_json(
-            {
-                "event": "game_start",
-            }
-        )
+        await self.send_each({"event": "game_start"})
         await self.send_state_to_players()
 
     def init_deck(self):
@@ -55,7 +34,6 @@ class Game:
         random.shuffle(self.deck)
 
     def draw_cards(self, player):
-        # TODO handle empty cards
         for i in range(5 - len(player.hand)):
             if len(self.deck) == 0:
                 return
@@ -100,27 +78,29 @@ class Game:
         # attack
         if not was_attacked:
             attack_direction = 1 if is_left_player else -1
-            card_types = defaultdict(list)
-            for card in player.hand:
-                card_types[card].append(card)
 
-            can_jump_attack = self.last_player == player and self.last_action[
-                "action"
-            ] in [
-                "moveLeft",
+            last_action_name = self.last_action and self.last_action.get("action")
+
+            # jump attack
+            if self.last_player == player and last_action_name in [
                 "moveRight",
-            ]
-            attack_type = "jumpAttack" if can_jump_attack else "attack"
-            for card_type, multiple in card_types.items():
-                if player.pos + card_type * attack_direction == player.other_player.pos:
-                    for i in range(1, len(multiple) + 1):
-                        moves.append({"action": attack_type, "cards": multiple[:i]})
+                "moveLeft",
+            ]:
+                was_forward_move = (
+                    is_left_player and last_action_name == "moveRight"
+                ) or (not is_left_player and last_action_name == "moveLeft")
+                can_jump_attack = self.last_player == player and was_forward_move
 
-            if can_jump_attack:
-                # no other moves possible
+                if can_jump_attack:
+                    moves += player.get_attack_moves("jumpAttack", attack_direction)
+
+                # no other moves possible after moving
                 moves.append({"action": "skip", "cards": []})
 
                 return moves
+
+            # standard attack
+            moves += player.get_attack_moves("attack", attack_direction)
 
         # move
         can_not_move_left = self.last_action is not None and (
@@ -152,12 +132,13 @@ class Game:
 
         return moves
 
-    async def update_state(self, move, id):
+    async def update_state(self, move, id: UUID):
         player = self.get_player_by_id(id)
         if player != self.current_player:
             print(f"Player {id} not current player, aborting")
             return
-        if move not in self.get_legal_moves(player):
+        legal_moves = self.get_legal_moves(player)
+        if move not in legal_moves:
             print(f"invalid move, aborting: {move}")
             return
 
@@ -177,8 +158,9 @@ class Game:
         self.last_action = move
         self.last_player = player
 
-        own_next_moves = self.get_state(player)["next_moves"]
-        own_next_moves = [x["action"] for x in own_next_moves]
+        # re-calculate legal moves for the new state
+        legal_moves = self.get_legal_moves(player)
+        own_next_moves = [x["action"] for x in legal_moves]
 
         can_play_again = (
             move["action"] in ["parry", "moveLeft", "moveRight"]
@@ -193,28 +175,23 @@ class Game:
         await self.send_state_to_players()
 
         other_player_moves = self.get_state(player.other_player)["next_moves"]
-        if len(self.deck) == 0 and not "parry" in other_player_moves:
+        if len(self.deck) == 0 and "parry" not in other_player_moves:
             winner = self.get_winner()
-            await self.send_game_over(winner)
+            await self.game_over(winner)
         # only check for game end if the current player changes
         elif len(other_player_moves) == 0 and not self.current_player == player:
-            await self.send_game_over(player)
+            await self.game_over(player)
 
-    async def send_game_over(self, winner):
-        if self.p1.con is not None:
-            await self.p1.con.send_json(
-                {"event": "game_over", "winner": jsonable_encoder(winner.id)}
-            )
-        if self.p2.con is not None:
-            await self.p2.con.send_json(
-                {"event": "game_over", "winner": jsonable_encoder(winner.id)}
-            )
+    async def game_over(self, winner):
+        self.is_over = True
+        await self.send_each(
+            {"event": "game_over", "winner": jsonable_encoder(winner.id)}
+        )
 
     def get_winner(self):
         player = self.current_player
         other_player = player.other_player
         is_left_player = player.pos < other_player.pos
-        is_right_player = not is_left_player
 
         winner = self.current_player
         center = 11

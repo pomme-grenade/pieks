@@ -23,8 +23,5 @@ export function updateText(state, playerId) {
     )}`;
   }
 
-  const distance = Math.abs(state.other_pos - state.own_pos);
-  textContent += ` - distance: ${distance}`;
-
   return textContent;
 }

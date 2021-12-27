@@ -1,6 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Dict
 
 from game import Player, Game
 
@@ -11,7 +11,7 @@ app = FastAPI()
 class ConnectionManager:
     def __init__(self):
         self.queue: Optional[Player] = None
-        self.games = {}
+        self.games: Dict[UUID, Game] = {}
 
     async def connect(self, websocket: WebSocket, id: UUID):
         await websocket.accept()
@@ -50,21 +50,23 @@ class ConnectionManager:
             self.queue = None
         else:
             # send disconnect message to other player
-            game = self.games[id]
-            game.get_player_by_id(id).con = None
-            other_player = game.p1 if game.p1.id != id else game.p2
-            if other_player.con is None:
-                # todo both players left, remove the game
-                pass
+            game = self.games.get(id)
+            if game is None:
+                return
+            player = game.get_player_by_id(id)
+            player.con = None
+            if player.other_player.con is None:
+                self.remove_game(id)
             else:
-                await other_player.con.send_json({"event": "other_player_disconnected"})
+                await player.other_player.con.send_json(
+                    {"event": "other_player_disconnected"}
+                )
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    # async def broadcast(self, message: str):
-    # for connection in self.queue:
-    # await connection.send_text(message)
+    def remove_game(self, id: UUID):
+        # remove the game by the given ID
+        game: Game = self.games.pop(id)
+        # also remove the game for the other player's ID
+        self.games.pop(game.get_player_by_id(id).other_player.id)
 
 
 manager = ConnectionManager()
@@ -76,6 +78,11 @@ async def websocket_endpoint(websocket: WebSocket, client_id: UUID):
     try:
         while True:
             data = await websocket.receive_json()
-            await manager.games[client_id].update_state(data, client_id)
+            game = manager.games.get(client_id)
+            if game is not None:
+                await game.update_state(data, client_id)
+                if game.is_over:
+                    manager.remove_game(client_id)
+            # todo search for new game here
     except WebSocketDisconnect:
         await manager.disconnect(websocket, client_id)
