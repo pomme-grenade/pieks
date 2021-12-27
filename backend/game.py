@@ -1,22 +1,8 @@
-from fastapi import WebSocket
 from fastapi.encoders import jsonable_encoder
 from uuid import UUID
 from typing import List
-from collections import defaultdict
+from player import Player
 import random
-
-
-class Player:
-    def __init__(self, con: WebSocket, id: UUID, pos: int, other=None):
-        self.con = con
-        self.id = id
-        self.hand: List[int] = []
-        self.pos = pos
-        self.other_player = other
-
-    def remove_cards(self, cards: List[int]):
-        for card in cards:
-            self.hand.remove(card)
 
 
 class Game:
@@ -36,16 +22,7 @@ class Game:
         await self.p2.con.send_json(json)
 
     async def start_game(self):
-        await self.p1.con.send_json(
-            {
-                "event": "game_start",
-            }
-        )
-        await self.p2.con.send_json(
-            {
-                "event": "game_start",
-            }
-        )
+        await self.send_each({"event": "game_start"})
         await self.send_state_to_players()
 
     def init_deck(self):
@@ -100,27 +77,29 @@ class Game:
         # attack
         if not was_attacked:
             attack_direction = 1 if is_left_player else -1
-            card_types = defaultdict(list)
-            for card in player.hand:
-                card_types[card].append(card)
 
-            can_jump_attack = self.last_player == player and self.last_action[
-                "action"
-            ] in [
-                "moveLeft",
+            last_action_name = self.last_action and self.last_action.get("action")
+
+            # jump attack
+            if self.last_player == player and last_action_name in [
                 "moveRight",
-            ]
-            attack_type = "jumpAttack" if can_jump_attack else "attack"
-            for card_type, multiple in card_types.items():
-                if player.pos + card_type * attack_direction == player.other_player.pos:
-                    for i in range(1, len(multiple) + 1):
-                        moves.append({"action": attack_type, "cards": multiple[:i]})
+                "moveLeft",
+            ]:
+                was_forward_move = (
+                    is_left_player and last_action_name == "moveRight"
+                ) or (not is_left_player and last_action_name == "moveLeft")
+                can_jump_attack = self.last_player == player and was_forward_move
 
-            if can_jump_attack:
-                # no other moves possible
+                if can_jump_attack:
+                    moves += player.get_attack_moves("jumpAttack", attack_direction)
+
+                # no other moves possible after moving
                 moves.append({"action": "skip", "cards": []})
 
                 return moves
+
+            # standard attack
+            moves += player.get_attack_moves("attack", attack_direction)
 
         # move
         can_not_move_left = self.last_action is not None and (
@@ -152,7 +131,7 @@ class Game:
 
         return moves
 
-    async def update_state(self, move, id):
+    async def update_state(self, move, id: UUID):
         player = self.get_player_by_id(id)
         if player != self.current_player:
             print(f"Player {id} not current player, aborting")
@@ -214,7 +193,6 @@ class Game:
         player = self.current_player
         other_player = player.other_player
         is_left_player = player.pos < other_player.pos
-        is_right_player = not is_left_player
 
         winner = self.current_player
         center = 11
