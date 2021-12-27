@@ -4,7 +4,7 @@ import colors from "./colors";
 
 const fieldCount = 23;
 const fieldWidth = 0.4;
-function tileXPosition(i) {
+export function tileXPosition(i) {
   return (i - Math.floor(fieldCount / 2)) * fieldWidth * 1.1;
 }
 

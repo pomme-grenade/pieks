@@ -7,9 +7,15 @@ import {
   createPlayers,
   resetFieldColors,
   updatePlayers,
+  tileXPosition,
 } from "./field";
 import "./style.css";
 import { updateText } from "./text";
+import {
+  createHighlights,
+  updateHighlights,
+  resetHighlights,
+} from "./highlight.js";
 
 const mousePosition = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
@@ -25,14 +31,20 @@ let camera;
 let cardGroup;
 let sendMessage;
 
-export async function initGame(scene, cam, onSendMessage) {
+const highlights = createHighlights();
+
+let scene;
+
+export async function initGame(gameScene, cam, onSendMessage) {
   camera = cam;
+  scene = gameScene;
   scene.add(...fieldGroup);
   scene.add(...playerMeshes);
 
   cardGroup = await createCards();
   scene.add(cardGroup);
 
+  scene.add(highlights.left, highlights.right);
   sendMessage = onSendMessage;
 }
 
@@ -117,11 +129,15 @@ function onMouseClick(_event) {
 
   const dirToOther = Math.sign(currentState.other_pos - playerPos);
   const legalMoves = getLegalMoves(selectedCards);
+
+  let rightHighlightPos = null;
+  let leftHighlightPos = null;
+
   if (legalMoves.includes("moveLeft")) {
-    fieldGroup[playerPos - selectedCards[0]].material.color.set(colors.red);
+    leftHighlightPos = tileXPosition(playerPos - selectedCards[0]);
   }
   if (legalMoves.includes("moveRight")) {
-    fieldGroup[playerPos + selectedCards[0]].material.color.set(colors.red);
+    rightHighlightPos = tileXPosition(playerPos + selectedCards[0]);
   }
   if (legalMoves.includes("attack") || legalMoves.includes("jumpAttack")) {
     fieldGroup[playerPos + selectedCards[0] * dirToOther].material.color.set(
@@ -131,6 +147,8 @@ function onMouseClick(_event) {
   if (legalMoves.includes("parry")) {
     fieldGroup[playerPos].material.color.set(colors.green);
   }
+
+  updateHighlights(highlights, leftHighlightPos, rightHighlightPos);
 
   const fieldIntersects = raycaster.intersectObjects(fieldGroup);
 
@@ -148,8 +166,10 @@ function onMouseClick(_event) {
       selectedAction = "parry";
     } else if (dir == -1 && legalMoves.includes("moveLeft")) {
       selectedAction = "moveLeft";
+      leftHighlightPos = null;
     } else if (dir == 1 && legalMoves.includes("moveRight")) {
       selectedAction = "moveRight";
+      rightHighlightPos = null;
     } else {
       selectedAction = "skip";
     }
@@ -157,6 +177,7 @@ function onMouseClick(_event) {
     if (selectedAction) {
       console.log("action", selectedAction);
 
+      resetHighlights(highlights);
       resetFieldColors(fieldGroup);
 
       sendMessage({

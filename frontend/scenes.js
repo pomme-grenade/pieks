@@ -14,7 +14,11 @@ const material = new THREE.MeshStandardMaterial({ color: colors.orange });
 const fontMesh = new THREE.Mesh(geometry, material);
 fontMesh.position.x -= 4;
 
-export function createMenuScene() {
+//export function updateUniforms(cameraPos) {
+//highlightMesh.material.uniforms.uWorldCameraPos.value.copy(cameraPos);
+//}
+
+export function createMenuScene(camera) {
   const scene = new THREE.Scene();
   const ambientLight = new THREE.AmbientLight(0x262837, 3);
 
@@ -24,6 +28,7 @@ export function createMenuScene() {
 
   scene.add(ambientLight, directionalLight);
   scene.add(fontMesh);
+
   return scene;
 }
 

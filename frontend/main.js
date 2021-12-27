@@ -110,7 +110,7 @@ statusText.textContent = "Finding a match...";
 
 await initGame(scene, camera, sendMessage);
 const scenes = {
-  menu: createMenuScene(),
+  menu: createMenuScene(camera),
   game: scene,
   gameOver: createGameOverScene(),
 };
@@ -122,6 +122,7 @@ const tick = () => {
   const deltaTime = elapsedTime - lastElapsedTime;
   lastElapsedTime = elapsedTime;
 
+  //updateUniforms(camera.position);
   // Update controls
   controls.update();
 
