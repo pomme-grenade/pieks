@@ -1,5 +1,10 @@
 import { isEqual, pull, pullAt } from "lodash";
 import * as THREE from "three";
+import {
+  createCanvasTexture,
+  createDistanceText as createDistanceIndicator,
+  updateDistanceText,
+} from "./distance_text";
 import { createCards, raycastCards, updateCards } from "./card";
 import colors from "./colors";
 import {
@@ -20,6 +25,10 @@ let selectedCardMeshes = [];
 
 const fieldGroup = createFieldTiles();
 const playerMeshes = createPlayers();
+const distanceIndicator = createDistanceIndicator(
+  playerMeshes[0].position,
+  playerMeshes[1].position
+);
 
 let camera;
 let cardGroup;
@@ -32,6 +41,8 @@ export async function initGame(scene, cam, onSendMessage) {
 
   cardGroup = await createCards();
   scene.add(cardGroup);
+  scene.add(distanceIndicator.textMesh);
+  scene.add(...distanceIndicator.lines);
 
   sendMessage = onSendMessage;
 }
@@ -70,6 +81,14 @@ export function updateState(newState, playerId, text) {
   updateCards(cardGroup.children, newState.own_hand);
   updatePlayers(playerMeshes, [newState.own_pos, newState.other_pos]);
   playerMeshes[0].material.color = new THREE.Color(colors.greenLight);
+
+  const distance = Math.abs(newState.other_pos - newState.own_pos);
+  updateDistanceText(
+    distanceIndicator,
+    distance,
+    playerMeshes[0].position,
+    playerMeshes[1].position
+  );
 
   text.textContent = updateText(newState, playerId);
 }
