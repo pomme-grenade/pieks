@@ -8,6 +8,14 @@ export function tileXPosition(i) {
   return (i - Math.floor(fieldCount / 2)) * fieldWidth * 1.1;
 }
 
+export function createFloor() {
+  const geom = new THREE.PlaneGeometry(100, 100);
+  const mat = new THREE.MeshBasicMaterial({ color: colors.background });
+  const plane = new THREE.Mesh(geom, mat);
+  plane.position.z -= 1;
+  return plane;
+}
+
 export function createFieldTiles() {
   let meshes = range(fieldCount).map((i) => {
     const geometry = new THREE.PlaneGeometry(fieldWidth, 1);
