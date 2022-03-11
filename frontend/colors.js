@@ -16,6 +16,7 @@ const colors = {
   blue: 0x458588,
   gray: 0xa89984,
   grayDark: 0x928374,
+  background: 0xa38a81,
 };
 
 export default colors;

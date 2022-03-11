@@ -13,6 +13,7 @@ import {
   resetFieldColors,
   updatePlayers,
   tileXPosition,
+  createFloor,
 } from "./field";
 import "./style.css";
 import { updateText } from "./text";
@@ -49,6 +50,7 @@ export async function initGame(gameScene, cam, onSendMessage) {
   scene = gameScene;
   scene.add(...fieldGroup);
   scene.add(...playerMeshes);
+  scene.add(createFloor());
 
   cardGroup = await createCards();
   scene.add(cardGroup);
