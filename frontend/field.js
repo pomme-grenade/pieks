@@ -23,19 +23,6 @@ export function createFieldTiles() {
   return meshes;
 }
 
-export function createPlayers() {
-  const playerHeight = 0.2;
-  return [0, 22].map((i) => {
-    const geometry = new THREE.CylinderGeometry(0.15, 0.15, playerHeight);
-    const material = new THREE.MeshBasicMaterial({ color: colors.green });
-    const cube = new THREE.Mesh(geometry, material);
-    cube.rotation.x = Math.PI / 2;
-    cube.position.x = tileXPosition(i);
-    cube.position.z = playerHeight / 2;
-    return cube;
-  });
-}
-
 /**
  *
  * @param {THREE.Mesh[]} meshes
@@ -44,6 +31,9 @@ export function createPlayers() {
 export function updatePlayers(meshes, state) {
   for (let [i, pos] of state.entries()) {
     meshes[i].position.x = tileXPosition(pos);
+    if (meshes[i].position.x < 0) {
+      meshes[i].rotation.y -= Math.PI;
+    }
   }
 }
 

@@ -7,7 +7,7 @@ import { range, zip } from "lodash";
 import * as THREE from "three";
 import colors from "./colors";
 
-const loader = new THREE.TextureLoader();
+export const loader = new THREE.TextureLoader();
 const textures = await Promise.all(
   [url1, url2, url3, url4, url5].map(
     (url) => new Promise((res) => loader.load(url, res))

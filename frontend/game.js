@@ -6,10 +6,10 @@ import {
   updateDistanceText,
 } from "./distance_text";
 import { createCards, raycastCards, updateCards } from "./card";
+import { dogTexture, createPlayers } from "./player.js";
 import colors from "./colors";
 import {
   createFieldTiles,
-  createPlayers,
   resetFieldColors,
   updatePlayers,
   tileXPosition,
@@ -30,7 +30,7 @@ let selectedCards = [];
 let selectedCardMeshes = [];
 
 const fieldGroup = createFieldTiles();
-const playerMeshes = createPlayers();
+const playerMeshes = await createPlayers();
 const distanceIndicator = createDistanceIndicator(
   playerMeshes[0].position,
   playerMeshes[1].position
@@ -48,6 +48,12 @@ export async function initGame(gameScene, cam, onSendMessage) {
   camera = cam;
   scene = gameScene;
   scene.add(...fieldGroup);
+
+  for (let mesh of playerMeshes) {
+    mesh.traverse((child) => {
+      child.material = new THREE.MeshBasicMaterial({ map: dogTexture });
+    });
+  }
   scene.add(...playerMeshes);
 
   cardGroup = await createCards();
