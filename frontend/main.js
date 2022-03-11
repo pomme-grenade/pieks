@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Vector3 } from "three";
+import { Vector2, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { initGame, updateGame, updateState } from "./game.js";
 import {
@@ -12,6 +12,9 @@ import colors from "./colors";
 import "./style.css";
 import { getInstructions } from "./instructions.js";
 import { getPlayerId } from "./player_id.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 const canvas = document.querySelector("canvas.webgl");
 const statusText = document.querySelector("#status");
@@ -65,6 +68,10 @@ camera.position.y = -1;
 camera.position.z = 5;
 scene.add(camera);
 
+// Post-processing
+const composer = new EffectComposer(renderer);
+composer.addPass(new UnrealBloomPass(new Vector2(128, 128), 0.25, 1, 0.6));
+
 // Controls
 const controls = new OrbitControls(camera, canvas);
 controls.target = new Vector3(0, -0.5, 0);
@@ -80,13 +87,12 @@ const playerId = getPlayerId();
 
 function onServerUpdate(info) {
   if (info["event"] === "game_start") {
-    currentScene = "game";
+    setScene("game");
   } else if (info["event"] === "game_over") {
-    // currentScene = "game";
     const hasWon = info["winner"] === playerId;
     const description = hasWon ? "w i n" : "l o s e";
-    currentScene = "gameOver";
-    scenes[currentScene].add(
+    setScene("gameOver");
+    scenes.gameOver.add(
       new THREE.Mesh(
         createTextGeometry(description),
         new THREE.MeshStandardMaterial({ color: colors.orange })
@@ -115,7 +121,27 @@ const scenes = {
   gameOver: createGameOverScene(),
 };
 
-let currentScene = "menu";
+let renderPass;
+let gameRunning = false;
+
+function setScene(scene) {
+  // reset renderPass
+  composer.removePass(renderPass);
+  gameRunning = false;
+
+  if (scene === "menu") {
+    renderPass = new RenderPass(scenes.menu, camera);
+  } else if (scene === "gameOver") {
+    renderPass = new RenderPass(scenes.gameOver, camera);
+  } else if (scene === "game") {
+    gameRunning = true;
+    renderPass = new RenderPass(scenes.game, camera);
+  }
+  composer.insertPass(renderPass, 0);
+}
+
+// Start in menu scene
+setScene("menu");
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
@@ -126,16 +152,13 @@ const tick = () => {
   // Update controls
   controls.update();
 
-  // Render
-
-  if (currentScene === "menu") {
-    renderer.render(scenes.menu, camera);
-  } else if (currentScene === "gameOver") {
-    renderer.render(scenes.gameOver, camera);
-  } else {
+  // Update game
+  if (gameRunning) {
     updateGame(deltaTime);
-    renderer.render(scenes.game, camera);
   }
+
+  // Render
+  composer.render();
 
   // Call tick again on the next frame
   window.requestAnimationFrame(tick);
