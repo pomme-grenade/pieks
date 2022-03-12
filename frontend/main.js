@@ -70,7 +70,7 @@ scene.add(camera);
 
 // Post-processing
 const composer = new EffectComposer(renderer);
-composer.addPass(new UnrealBloomPass(new Vector2(128, 128), 0.25, 1, 0.6));
+composer.addPass(new UnrealBloomPass(new Vector2(4, 4), 0.25, 1, 0.9));
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
