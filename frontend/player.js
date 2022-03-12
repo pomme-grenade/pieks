@@ -9,7 +9,7 @@ export const dogTexture = await new Promise((res) => {
 });
 dogTexture.flipY = false;
 
-const gltfLoader = new GLTFLoader();
+export const gltfLoader = new GLTFLoader();
 
 export async function createPlayers() {
   const playerHeight = 0.2;

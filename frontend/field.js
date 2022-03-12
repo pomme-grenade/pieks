@@ -39,8 +39,10 @@ export function createFieldTiles() {
 export function updatePlayers(meshes, state) {
   for (let [i, pos] of state.entries()) {
     meshes[i].position.x = tileXPosition(pos);
-    if (meshes[i].position.x < 0) {
-      meshes[i].rotation.y -= Math.PI;
+    if (meshes[0].position.x < meshes[1].position.x) {
+      meshes[0].rotation.y = Math.PI;
+    } else {
+      meshes[1].rotation.y = Math.PI;
     }
   }
 }
