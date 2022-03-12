@@ -6,7 +6,7 @@ import {
   updateDistanceText,
 } from "./distance_text";
 import { createCards, raycastCards, updateCards } from "./card";
-import { createWorld, worldTexture } from "./world";
+import { createWorld, worldTexture, treeTexture } from "./world";
 import { dogTexture, createPlayers } from "./player.js";
 import colors from "./colors";
 import {
@@ -60,8 +60,13 @@ export async function initGame(gameScene, cam, onSendMessage) {
   scene.add(...playerMeshes);
   scene.add(createFloor());
 
+  const treeR = new RegExp("Vert")
   worldGroup.traverse((child) => {
-    child.material = new THREE.MeshBasicMaterial({ map: worldTexture });
+    if (treeR.test(child.name)) {
+      child.material = new THREE.MeshBasicMaterial({ map: treeTexture });
+    } else {
+      child.material = new THREE.MeshBasicMaterial({ map: worldTexture });
+    }
   });
   scene.add(worldGroup)
 
