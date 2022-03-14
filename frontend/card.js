@@ -30,7 +30,9 @@ export async function createCards() {
       side: THREE.FrontSide,
     });
     const card = new THREE.Mesh(bgMesh, bgMat);
-    card.position.y = -2;
+    card.position.y = 1;
+    card.position.z = 1;
+    card.rotation.x = Math.PI / 4
     card.position.x = cardXPosition(i, cardCount);
     // invisible until the game starts: `updateCards` will then
     // make the cards visible

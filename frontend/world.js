@@ -3,7 +3,7 @@ import { gltfLoader } from "./player.js";
 import { loader } from "./card.js";
 
 export const worldTexture = await new Promise((res) => {
-  loader.load("./assets/baked/all_bake.webp", res);
+  loader.load("./assets/baked/cliff_bake.png", res);
 });
 worldTexture.flipY = false;
 
@@ -14,9 +14,12 @@ treeTexture.flipY = false;
 
 export async function createWorld() {
   const worldGroup = await new Promise((res, rej) => {
-    gltfLoader.load("./assets/models/all.glb", (gltf) => {
+    gltfLoader.load("./assets/models/cliff.glb", (gltf) => {
       const scene = gltf.scene;
-      scene.scale.set(0.4, 0.4, 0.4);
+      scene.scale.set(2, 2, 2);
+      scene.position.x += 2
+      scene.position.y -= 1
+      scene.frustumCulled = false
       scene.rotation.x = Math.PI / 2;
       res(scene);
     });

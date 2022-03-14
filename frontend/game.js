@@ -58,15 +58,15 @@ export async function initGame(gameScene, cam, onSendMessage) {
     });
   }
   scene.add(...playerMeshes);
-  scene.add(createFloor());
+  // scene.add(createFloor());
 
   const treeR = new RegExp("Vert")
   worldGroup.traverse((child) => {
-    if (treeR.test(child.name)) {
-      child.material = new THREE.MeshBasicMaterial({ map: treeTexture });
-    } else {
+    // if (treeR.test(child.name)) {
+    //   child.material = new THREE.MeshBasicMaterial({ map: treeTexture });
+    // } else {
       child.material = new THREE.MeshBasicMaterial({ map: worldTexture });
-    }
+    // }
   });
   scene.add(worldGroup)
 
@@ -76,6 +76,10 @@ export async function initGame(gameScene, cam, onSendMessage) {
   scene.add(...distanceIndicator.lines);
 
   scene.add(highlights.left, highlights.right);
+
+  // const color = 0xFFFFFF;
+  // const density = 0.1;
+  // scene.fog = new THREE.FogExp2(color, density);
   sendMessage = onSendMessage;
 }
 
