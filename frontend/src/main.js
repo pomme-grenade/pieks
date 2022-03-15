@@ -72,10 +72,10 @@ scene.add(camera);
 
 // Post-processing
 const composer = new EffectComposer(renderer);
-// composer.addPass(new UnrealBloomPass(new Vector2(4, 4), 0.25, 1, 0.9));
+composer.addPass(new UnrealBloomPass(new Vector2(4, 4), 0.25, 1, 0.9));
 const bokehPass = new BokehPass(scene, camera, {
-  focus: 6.0,
-  aperture: 0.0025,
+  focus: 5.0,
+  aperture: 0.0015,
   maxblur: 0.01,
 
   width: sizes.width,
