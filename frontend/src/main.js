@@ -66,17 +66,17 @@ const camera = new THREE.PerspectiveCamera(
   100
 );
 camera.position.x = 0;
-camera.position.y = -1;
+camera.position.y = -2;
 camera.position.z = 5;
 scene.add(camera);
 
 // Post-processing
 const composer = new EffectComposer(renderer);
-composer.addPass(new UnrealBloomPass(new Vector2(4, 4), 0.25, 1, 0.9));
+// composer.addPass(new UnrealBloomPass(new Vector2(4, 4), 0.25, 1, 0.9));
 const bokehPass = new BokehPass(scene, camera, {
   focus: 5.0,
-  aperture: 0.0015,
-  maxblur: 0.01,
+  aperture: 0.001,
+  maxblur: 0.008,
 
   width: sizes.width,
   height: sizes.height,
