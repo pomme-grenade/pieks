@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import helvetica from "./assets/fonts/helvetiker_regular.typeface.json";
+import helvetica from "../assets/fonts/helvetiker_regular.typeface.json";
 import colors from "./colors";
 
 const loader = new FontLoader();

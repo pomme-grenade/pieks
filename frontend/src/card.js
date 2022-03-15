@@ -1,8 +1,8 @@
-import url1 from "./assets/1.png";
-import url2 from "./assets/2.png";
-import url3 from "./assets/3.png";
-import url4 from "./assets/4.png";
-import url5 from "./assets/5.png";
+import url1 from "../assets/1.png";
+import url2 from "../assets/2.png";
+import url3 from "../assets/3.png";
+import url4 from "../assets/4.png";
+import url5 from "../assets/5.png";
 import { range, zip } from "lodash";
 import * as THREE from "three";
 import colors from "./colors";
@@ -32,7 +32,7 @@ export async function createCards() {
     const card = new THREE.Mesh(bgMesh, bgMat);
     card.position.y = 1;
     card.position.z = 1;
-    card.rotation.x = Math.PI / 4
+    card.rotation.x = Math.PI / 4;
     card.position.x = cardXPosition(i, cardCount);
     // invisible until the game starts: `updateCards` will then
     // make the cards visible

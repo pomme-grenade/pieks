@@ -16,7 +16,7 @@ import {
   tileXPosition,
   createFloor,
 } from "./field";
-import "./style.css";
+import "../style.css";
 import { updateText } from "./text";
 import {
   createHighlights,
@@ -60,7 +60,7 @@ export async function initGame(gameScene, cam, onSendMessage) {
   scene.add(...playerMeshes);
   // scene.add(createFloor());
 
-  const treeR = new RegExp("tree")
+  const treeR = new RegExp("tree");
   worldGroup.traverse((child) => {
     if (treeR.test(child.name)) {
       child.material = new THREE.MeshBasicMaterial({ map: treeTexture });
@@ -68,7 +68,7 @@ export async function initGame(gameScene, cam, onSendMessage) {
       child.material = new THREE.MeshBasicMaterial({ map: worldTexture });
     }
   });
-  scene.add(worldGroup)
+  scene.add(worldGroup);
 
   cardGroup = await createCards();
   scene.add(cardGroup);

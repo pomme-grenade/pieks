@@ -9,14 +9,13 @@ import {
 } from "./scenes";
 import { startSockets } from "./web_sockets.js";
 import colors from "./colors";
-import "./style.css";
+import "../style.css";
 import { getInstructions } from "./instructions.js";
 import { getPlayerId } from "./player_id.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-
 
 const canvas = document.querySelector("canvas.webgl");
 const statusText = document.querySelector("#status");
@@ -56,7 +55,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0xD8BFD8);
+renderer.setClearColor(0xd8bfd8);
 // renderer.setClearColor(0xB6B5D8);
 
 // Base camera
@@ -74,14 +73,14 @@ scene.add(camera);
 // Post-processing
 const composer = new EffectComposer(renderer);
 // composer.addPass(new UnrealBloomPass(new Vector2(4, 4), 0.25, 1, 0.9));
-const bokehPass = new BokehPass( scene, camera, {
-					focus: 6.0,
-					aperture: 0.0025,
-					maxblur: 0.01,
+const bokehPass = new BokehPass(scene, camera, {
+  focus: 6.0,
+  aperture: 0.0025,
+  maxblur: 0.01,
 
-					width: sizes.width,
-					height: sizes.height
-} );
+  width: sizes.width,
+  height: sizes.height,
+});
 composer.addPass(bokehPass);
 
 // Controls
