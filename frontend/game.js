@@ -60,13 +60,13 @@ export async function initGame(gameScene, cam, onSendMessage) {
   scene.add(...playerMeshes);
   // scene.add(createFloor());
 
-  const treeR = new RegExp("Vert")
+  const treeR = new RegExp("tree")
   worldGroup.traverse((child) => {
-    // if (treeR.test(child.name)) {
-    //   child.material = new THREE.MeshBasicMaterial({ map: treeTexture });
-    // } else {
+    if (treeR.test(child.name)) {
+      child.material = new THREE.MeshBasicMaterial({ map: treeTexture });
+    } else {
       child.material = new THREE.MeshBasicMaterial({ map: worldTexture });
-    // }
+    }
   });
   scene.add(worldGroup)
 

@@ -8,7 +8,7 @@ export const worldTexture = await new Promise((res) => {
 worldTexture.flipY = false;
 
 export const treeTexture = await new Promise((res) => {
-  loader.load("./assets/baked/trees_bake.png", res);
+  loader.load("./assets/baked/tree_baked_big.png", res);
 });
 treeTexture.flipY = false;
 
@@ -17,7 +17,7 @@ export async function createWorld() {
     gltfLoader.load("./assets/models/cliff.glb", (gltf) => {
       const scene = gltf.scene;
       scene.scale.set(2, 2, 2);
-      scene.position.x += 2
+      scene.position.x += 1.5
       scene.position.y -= 1
       scene.frustumCulled = false
       scene.rotation.x = Math.PI / 2;
