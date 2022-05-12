@@ -9,7 +9,7 @@ export function tileXPosition(i) {
 }
 
 export function createFloor() {
-  const geom = new THREE.PlaneGeometry(100, 100);
+  const geom = new THREE.BoxGeometry(100, 100, 50);
   const mat = new THREE.MeshBasicMaterial({ color: colors.background });
   const plane = new THREE.Mesh(geom, mat);
   plane.position.z -= 1;
