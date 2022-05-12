@@ -5,7 +5,7 @@ import colors from "./colors";
 import { tileXPosition } from "./field.js";
 
 export const dogTexture = await new Promise((res) => {
-  loader.load("./assets/baked/dog_bake.png", res);
+  loader.load("./assets/baked/gazelle_bake.png", res);
 });
 dogTexture.flipY = false;
 
@@ -15,8 +15,8 @@ export async function createPlayers() {
   const playerHeight = 0.2;
 
   const playerGroup = await new Promise((res, rej) => {
-    gltfLoader.load("./assets/models/dog.glb", (gltf) => {
-      gltf.scene.scale.set(0.4, 0.4, 0.4);
+    gltfLoader.load("./assets/models/gazelle.glb", (gltf) => {
+      gltf.scene.scale.set(0.12, 0.12, 0.12);
       res(gltf.scene);
     });
   });
