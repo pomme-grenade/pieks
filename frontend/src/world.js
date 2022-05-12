@@ -3,7 +3,7 @@ import { gltfLoader } from "./player.js";
 import { loader } from "./card.js";
 
 export const worldTexture = await new Promise((res) => {
-  loader.load("./assets/baked/cliff_bake_stones.png", res);
+  loader.load("./assets/baked/cliff_bake_4k.png", res);
 });
 worldTexture.flipY = false;
 
