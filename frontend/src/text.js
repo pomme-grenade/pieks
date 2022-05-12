@@ -1,6 +1,11 @@
 export function updateText(state, playerId) {
   let textContent = "";
 
+  let [leftScore, rightScore] = state.scores;
+  if (leftScore !== 0 || rightScore !== 0) {
+    textContent += `Round scores: ${leftScore} - ${rightScore} | `;
+  }
+
   if (state.current_player === playerId) {
     textContent += `Your turn`;
   } else {

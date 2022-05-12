@@ -9,25 +9,37 @@ class Game:
     def __init__(self, p1: Player, p2: Player):
         self.p1 = p1
         self.p2 = p2
-        self.deck: List[int] = []
-        self.current_player = p1
-        self.last_action = None
-        self.last_player: Optional[Player] = None
+        # used to determine the starting player at the start of each round
+        self.start_player = p1
         self.is_over = False
 
-        self.init_deck()
-        self.draw_cards(p1)
-        self.draw_cards(p2)
+        self.reset_state_for_new_round()
 
     async def send_each(self, json):
-        await self.p1.con.send_json(json)
-        await self.p2.con.send_json(json)
+        if self.p1.con is not None:
+            await self.p1.con.send_json(json)
+        if self.p2.con is not None:
+            await self.p2.con.send_json(json)
 
     async def start_game(self):
         await self.send_each({"event": "game_start"})
         await self.send_state_to_players()
 
+    def reset_state_for_new_round(self):
+        self.p1.reset_state_for_new_round()
+        self.p2.reset_state_for_new_round()
+
+        self.last_action = None
+        self.last_player: Optional[Player] = None
+        self.current_player = self.start_player
+        self.start_player = self.start_player.other_player
+
+        self.init_deck()
+        self.draw_cards(self.p1)
+        self.draw_cards(self.p2)
+
     def init_deck(self):
+        self.deck: List[int] = []
         for i in range(5):
             for j in range(1, 6):
                 self.deck.append(j)
@@ -48,6 +60,7 @@ class Game:
             "last_action": self.last_action,
             "own_hand": own_player.hand,
             "next_moves": self.get_legal_moves(own_player),
+            "scores": [own_player.rounds_won, own_player.other_player.rounds_won],
         }
 
     def get_legal_moves(self, player):
@@ -172,21 +185,29 @@ class Game:
             self.draw_cards(player)
             self.current_player = player.other_player
 
-        await self.send_state_to_players()
-
         other_player_moves = self.get_state(player.other_player)["next_moves"]
         if len(self.deck) == 0 and "parry" not in other_player_moves:
             winner = self.get_winner()
-            await self.game_over(winner)
+            await self.round_over(winner)
         # only check for game end if the current player changes
         elif len(other_player_moves) == 0 and not self.current_player == player:
-            await self.game_over(player)
+            await self.round_over(player)
+
+        await self.send_state_to_players()
+
+    async def round_over(self, winner: Player):
+        winner.rounds_won += 1
+        if winner.rounds_won >= 5:
+            await self.game_over(winner)
+        else:
+            self.reset_state_for_new_round()
 
     async def game_over(self, winner):
         self.is_over = True
         await self.send_each(
             {"event": "game_over", "winner": jsonable_encoder(winner.id)}
         )
+        # todo clean up game from pool
 
     def get_winner(self):
         player = self.current_player
