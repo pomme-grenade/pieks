@@ -10,7 +10,13 @@ class Player:
         self.id = id
         self.hand: List[int] = []
         self.pos = pos
+        self.starting_pos = pos
         self.other_player: Player = other
+        self.rounds_won = 0
+
+    def reset_state_for_new_round(self):
+        self.pos = self.starting_pos
+        self.hand = []
 
     def remove_cards(self, cards: List[int]):
         for card in cards:
