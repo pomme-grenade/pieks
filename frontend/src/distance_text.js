@@ -19,7 +19,7 @@ export function createCanvasTexture() {
   ctx.font = "100px sans-serif";
   ctx.textBaseline = "middle";
   ctx.textAlign = "center";
-  ctx.fillStyle = "#928374";
+  ctx.fillStyle = "#3c3836";
   const texture = new CanvasTexture(ctx.canvas);
   return new MeshBasicMaterial({
     map: texture,
