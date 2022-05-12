@@ -4,8 +4,11 @@ import { loader } from "./card.js";
 import colors from "./colors";
 import { tileXPosition } from "./field.js";
 
+import gazelleBakeUrl from "../assets/baked/gazelle_bake.png";
+import gazelleModelUrl from "../assets/models/gazelle.glb";
+
 export const dogTexture = await new Promise((res) => {
-  loader.load("./assets/baked/gazelle_bake.png", res);
+  loader.load(gazelleBakeUrl, res);
 });
 dogTexture.flipY = false;
 
@@ -15,7 +18,7 @@ export async function createPlayers() {
   const playerHeight = 0.2;
 
   const playerGroup = await new Promise((res, rej) => {
-    gltfLoader.load("./assets/models/gazelle.glb", (gltf) => {
+    gltfLoader.load(gazelleModelUrl, (gltf) => {
       gltf.scene.scale.set(0.12, 0.12, 0.12);
       res(gltf.scene);
     });
