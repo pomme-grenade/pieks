@@ -74,14 +74,14 @@ scene.add(camera);
 const composer = new EffectComposer(renderer);
 // composer.addPass(new UnrealBloomPass(new Vector2(4, 4), 0.25, 1, 0.9));
 const bokehPass = new BokehPass(scene, camera, {
-  focus: 5.0,
-  aperture: 0.001,
+  focus: 10.0,
+  aperture: 0.0001,
   maxblur: 0.008,
 
   width: sizes.width,
   height: sizes.height,
 });
-composer.addPass(bokehPass);
+// composer.addPass(bokehPass);
 
 // Controls
 const controls = new OrbitControls(camera, canvas);
