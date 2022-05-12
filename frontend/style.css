@@ -7,7 +7,7 @@
 html,
 body {
   overflow: hidden;
-  color: white;
+  color: #3c3836;
   font-family: sans-serif;
 }
 
@@ -31,6 +31,5 @@ body {
 
 #instructions {
   max-width: 70em;
-  color: #a89984;
   white-space: pre-line;
 }
